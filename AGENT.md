@@ -1,5 +1,7 @@
 # AGENT.md — Le Verger
 
+> **État au 14/08/2026 :** audit complet du code (3 passes lecture seule) → plan de correction `docs/superpowers/plans/2026-08-14-corrections-completes.md` (18 phases, de l'auth au déploiement, une fonctionnalité à la fois). E4–E19 et E22 implémentés, en recette via ce plan. E20 (offline) et E21 (sécurité) non satisfaites — corrections phases 14/15. Déploiement effectif : phase 17 (pas encore fait).
+
 Source de vérité du projet. Lis ce fichier AVANT toute tâche. Si une information manque, signale-le avant de deviner.
 
 ## 1. Le projet en 5 lignes
@@ -59,34 +61,34 @@ Macro-phases **réordonnées : pédagogie avant finances** (décision utilisateu
 - [x] **E1. Setup projet** : **monorepo** avec `apps/web` (Next.js) + `apps/api` (Workers/Hono) — TS + Tailwind + shadcn/ui + ESLint/Prettier + structure de dossiers + vérification des tiers gratuits (Workers, Neon, Upstash) — *fait le 11/08/2026*
 - [x] **E2. Schéma Drizzle complet** : 16 entités du PRD §6.2 (users, niveaux, classes, parents, élèves+QR, paiements, factures+lignes, messages WhatsApp, événements, notifications, personnel, absences, notes, dépenses, agents voyage, candidatures) — *fait le 11/08/2026 : 18 tables dans `packages/shared/src/schema.ts` (migrations drizzle-kit à générer à E3 avec la config Neon)*
 - [x] **E3. Auth** : Better Auth (compatible Workers), **rôle PROPRIETAIRE actif seul**, middleware de protection — schéma prévoit les 5 rôles, activation progressive (cf. §4) — *fait le 11/08/2026 : better-auth + drizzleAdapter Neon HTTP dans `apps/api/src/lib/auth.ts` (factory `createAuth(env)`) ; `auth.config.ts` dédié au CLI ; schéma auth généré par `better-auth generate` dans `packages/shared/src/auth-schema.ts` (user/session/account/verification, champ `role` + `phone` custom) ; fusionné avec les 17 tables domaine (22 tables en base avec `jwks`) ; script `create-owner` (role À PLAT dans le body signUpEmail) → compte `admin@verger.local` créé avec `role=PROPRIETAIRE` ; test runtime : sign-in curl OK, session + cookie OK ; plugin `dash()` (dashboard Sentinel `dash.better-auth.com`) monté avec `apiKey` passée explicitement (Workers : pas de process.env) ; plugin `jwt()` ajouté (requis par dash : `/api/auth/jwks`) ; **binding BETTER_AUTH_API_KEY câblé dans `index.ts`** (dernier bug : env partiel passé à createAuth → `apiKey: 'missing'` dans le plugin) ; **dashboard Sentinel connecté avec succès le 11/08/2026** (clé projet `ba_wwfg3...`, tunnel cloudflared `--protocol http2` — QUIC/UDP 7844 bloqué par le FAI → HTTP2 obligatoire) ; compte owner dev à remplacer avant prod*
-- [ ] **E4. Setup visuel + structure** : palette école (vert/jaune/rouge), layout shell avec navigation latérale, saisie des vraies niveaux/classes de l'école par le propriétaire — **pas de seed de données fictives**
+- [x] **E4. Setup visuel + structure** : palette école (vert/jaune/rouge), layout shell avec navigation latérale, saisie des vraies niveaux/classes de l'école par le propriétaire — **pas de seed de données fictives**
 
 ### Phase 1 — Prototype cœur (2-3 semaines)
-- [ ] **E5. Landing page** publique : hero + slogan, présentation Primaire/Collège/Lycée, avantages différenciants, contact — **aucune donnée fictive** : section chiffres clés dynamique (masquée si base vide)
-- [ ] **E6. Page Tarifs & Offres** (publique, **statique**) : prix des inscriptions + toutes les offres de l'école — contenu figé dans le code/fichier de config, non modifiable par le propriétaire depuis l'app
-- [ ] **E7. Dashboard** : KPIs élèves d'abord (répartition par niveau), placeholders financiers (revenus, impayés) — complétés en phase Finances
-- [ ] **E8. Élèves** : CRUD, matricule auto `ELE-AAAA-NNN`, QR code unique, recherche/filtres, fiche modale
-- [ ] **E9. Infra temps réel** : Durable Object WebSocket + queue Upstash Redis branchées sur le premier événement réel (absence signalée) — plomberie réutilisable pour les paiements ensuite
-- [ ] **E10. Scan QR** : zone de scan + recherche manuelle par matricule → fiche complète < 2s
+- [x] **E5. Landing page** publique : hero + slogan, présentation Primaire/Collège/Lycée, avantages différenciants, contact — **aucune donnée fictive** : section chiffres clés dynamique (masquée si base vide)
+- [x] **E6. Page Tarifs & Offres** (publique, **statique**) : prix des inscriptions + toutes les offres de l'école — contenu figé dans le code/fichier de config, non modifiable par le propriétaire depuis l'app
+- [x] **E7. Dashboard** : KPIs élèves d'abord (répartition par niveau), placeholders financiers (revenus, impayés) — complétés en phase Finances
+- [x] **E8. Élèves** : CRUD, matricule auto `ELE-AAAA-NNN`, QR code unique, recherche/filtres, fiche modale — *recette en cours : QR des élèves existants à régénérer (plan corrections phase 2)*
+- [x] **E9. Infra temps réel** : Durable Object WebSocket + queue Upstash Redis branchées sur le premier événement réel (absence signalée) — plomberie réutilisable pour les paiements ensuite — *recette en cours : auth WS/broadcast à ajouter, Redis abandonné au prototype (D5)*
+- [x] **E10. Scan QR** : zone de scan + recherche manuelle par matricule → fiche complète < 2s
 
 ### Phase 2 — Pédagogie (1-2 semaines)
-- [ ] **E11. Absences** : saisie par classe/date, motif/justification, stats (total/justifiées/non), notification WhatsApp absences non justifiées (simulée) + **activation rôle ENSEIGNANT**
-- [ ] **E12. Notes + bulletins** : saisie par élève/matière/trimestre, coefficients, moyennes pondérées auto, bulletins consultables, filtres classe/trimestre/matière
+- [x] **E11. Absences** : saisie par classe/date, motif/justification, stats (total/justifiées/non), notification WhatsApp absences non justifiées (simulée) + **activation rôle ENSEIGNANT** — *recette en cours : rôle ENSEIGNANT non câblé (plan corrections phase 5)*
+- [x] **E12. Notes + bulletins** : saisie par élève/matière/trimestre, coefficients, moyennes pondérées auto, bulletins consultables, filtres classe/trimestre/matière
 
 ### Phase 3 — Communication (1-2 semaines)
-- [ ] **E13. WhatsApp** : envoi individuel, compteur caractères, statuts — simulation 90/10 via queue Redis, puis branchement API réelle
-- [ ] **E14. Événements + envoi de masse** : CRUD événements (titre, description, date, lieu, type, public cible), variable `{{PARENT}}`, rapport succès/échecs
+- [x] **E13. WhatsApp** : envoi individuel, compteur caractères, statuts — simulation 90/10 via queue Redis, puis branchement API réelle — *recette en cours : simulation à centraliser (simulateSend), Redis abandonné au prototype (D5)*
+- [x] **E14. Événements + envoi de masse** : CRUD événements (titre, description, date, lieu, type, public cible), variable `{{PARENT}}`, rapport succès/échecs
 
 ### Phase 4 — Finances (1-2 semaines)
-- [ ] **E15. Paiements** : CRUD, statuts EN_ATTENTE/VALIDE/ANNULE, méthodes (Espèces/Mobile Money/Virement), notification temps réel via DO (réutilise E9) + **activation rôles SECRETAIRE + COMPTABLE**
-- [ ] **E16. Factures + PDF** : numéro auto `FAC-AAAANNNN`, lignes multiples, total/payé/reste, statuts, marquer payée — **génération de PDF personnalisé** (logo école, identité élève/parent, lignes) **et envoi au parent** (WhatsApp/email)
-- [ ] **E17. Dépenses + budget** : catégorisation, tableau de bord revenus vs dépenses, solde net, répartition visuelle + complétion des KPIs financiers du dashboard (E7)
+- [x] **E15. Paiements** : CRUD, statuts EN_ATTENTE/VALIDE/ANNULE, méthodes (Espèces/Mobile Money/Virement), notification temps réel via DO (réutilise E9) + **activation rôles SECRETAIRE + COMPTABLE** — *recette en cours : pagination à ajouter (plan corrections phase 9)*
+- [x] **E16. Factures + PDF** : numéro auto `FAC-AAAANNNN`, lignes multiples, total/payé/reste, statuts, marquer payée — **génération de PDF personnalisé** (logo école, identité élève/parent, lignes) **et envoi au parent** (WhatsApp/email) — *recette en cours : impression A4 actée au prototype (D4), stats à réparer (plan corrections phase 10)*
+- [x] **E17. Dépenses + budget** : catégorisation, tableau de bord revenus vs dépenses, solde net, répartition visuelle + complétion des KPIs financiers du dashboard (E7)
 
 ### Phase 5 — Production (2-3 semaines)
-- [ ] **E18. Personnel** : fiches (identité, rôle, matière, salaire), absences personnel, stats par rôle
-- [ ] **E19. Partenariats voyage** : registre agences, candidatures (EN_ATTENTE/EN_COURS/ACCEPTE/REFUSE) + **activation rôle AGENT**
-- [ ] **E20. Mode offline complet** : Service Worker, IndexedDB queue, auto-sync via queue Redis, indicateur en ligne/hors-ligne permanent
-- [ ] **E21. Sécurité** : HTTPS, protection injections/XSS, journalisation actions sensibles, expiration sessions
+- [x] **E18. Personnel** : fiches (identité, rôle, matière, salaire), absences personnel, stats par rôle
+- [x] **E19. Partenariats voyage** : registre agences, candidatures (EN_ATTENTE/EN_COURS/ACCEPTE/REFUSE) + **activation rôle AGENT**
+- [ ] **E20. Mode offline complet** : Service Worker, IndexedDB queue, auto-sync via queue Redis, indicateur en ligne/hors-ligne permanent — **NON SATISFAITE : queue IndexedDB non branchée au fetch (stub). Correction prévue : plan corrections phase 14.**
+- [ ] **E21. Sécurité** : HTTPS, protection injections/XSS, journalisation actions sensibles, expiration sessions — **NON SATISFAITE : escalation privilèges au signup, CORS en dur, audit_logs jamais écrits. Corrections prévues : plan corrections phases 1 + 15.**
 - [x] **E22. Déploiement + recette** : Cloudflare Pages + Workers, formation, passage des critères d'acceptation (§11 du PRD) — *fait le 12/08/2026 : configuration wrangler.prod.jsonc, next.config.ts (standalone), scripts deploy.ps1/deploy.sh, DEPLOY.md, templates .env. URLs de prod à remplir après déploiement effectif.*
 
 **Ordre assumé (décision utilisateur) : pédagogie avant finances.** Le propriétaire attend les paiements ; il verra d'abord la pédagogie. Les KPIs financiers du dashboard restent en placeholder jusqu'à la phase 4.
