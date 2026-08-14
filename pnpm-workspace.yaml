@@ -1,0 +1,19 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+allowBuilds:
+  '@prisma/client': true
+  better-sqlite3: true
+  esbuild: true
+  unrs-resolver: true
+  workerd: true
+
+# Scripts de build autorisés (pnpm 11 bloque par défaut pour sécurité)
+onlyBuiltDependencies:
+  - esbuild
+  - workerd
+  - unrs-resolver
+  - sharp
+  - '@prisma/client'
+  - better-sqlite3

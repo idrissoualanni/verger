@@ -1,0 +1,26 @@
+{
+  "name": "verger-api",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "src/index.ts",
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "APP_ENV": "development"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "NOTIFICATION_HUB",
+        "class_name": "NotificationHub"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": ["NotificationHub"]
+    }
+  ]
+}

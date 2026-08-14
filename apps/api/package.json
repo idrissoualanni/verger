@@ -1,0 +1,29 @@
+{
+  "name": "@verger/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Le Verger — API edge (Cloudflare Workers + Hono)",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "create-owner": "node --env-file=../../.env.local node_modules/tsx/dist/cli.mjs scripts/create-owner.ts"
+  },
+  "dependencies": {
+    "@better-auth/infra": "^0.3.7",
+    "@neondatabase/serverless": "^1.1.0",
+    "@verger/shared": "workspace:*",
+    "better-auth": "^1.6.26",
+    "drizzle-orm": "^0.44.7",
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "@better-auth/cli": "^1.4.21",
+    "@cloudflare/workers-types": "^4.20250701.0",
+    "tsx": "^4.23.12",
+    "typescript": "^5.7.0",
+    "wrangler": "^4.0.0"
+  }
+}
