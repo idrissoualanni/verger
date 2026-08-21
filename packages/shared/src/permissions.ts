@@ -8,7 +8,8 @@
  */
 import type { UserRole } from "./constants";
 
-export const MODULES = [
+/** Modules métier — chacun a des routes REST `/api/<module>`. */
+const REST_MODULES = [
   "levels",
   "students",
   "grades",
@@ -20,11 +21,12 @@ export const MODULES = [
   "expenses",
   "staff",
   "travel",
-  // Modules de navigation (pas de route REST associée — servent au filtrage sidebar)
-  "dashboard",
-  "notifications",
-  "journal",
 ] as const;
+
+/** Modules de navigation (pas de route REST associée — servent au filtrage sidebar). */
+const NAV_MODULES = ["dashboard", "notifications", "journal"] as const;
+
+export const MODULES = [...REST_MODULES, ...NAV_MODULES] as const;
 export type Module = (typeof MODULES)[number];
 
 export const ACTIONS = ["read", "create", "update", "delete", "stats"] as const;
@@ -32,22 +34,15 @@ export type Action = (typeof ACTIONS)[number];
 
 export type Permission = `${Module}:${Action}`;
 
-const OWNER_MODULES = [
-  "levels",
-  "students",
-  "grades",
-  "absences",
-  "whatsapp",
-  "events",
-  "invoices",
-  "expenses",
-  "staff",
-] as const;
-const CRUD: Action[] = ["read", "create", "update", "delete"];
+const CRUD = ["read", "create", "update", "delete"] as const satisfies readonly Action[];
 
 /** PROPRIETAIRE : tout, sur tous les modules. */
 const OWNER_PERMISSIONS: readonly Permission[] = [
-  ...OWNER_MODULES.flatMap((m) => CRUD.map((a) => `${m}:${a}` as Permission)),
+  // Tout module REST sauf payments/travel, qui ont leur matrice fine ci-dessous.
+  // (Un nouveau module ajouté à REST_MODULES hérite automatiquement du CRUD owner.)
+  ...REST_MODULES
+    .filter((m) => m !== "payments" && m !== "travel")
+    .flatMap((m) => CRUD.map((a) => `${m}:${a}` as Permission)),
   "payments:read",
   "payments:create",
   "payments:update",
@@ -62,13 +57,13 @@ const OWNER_PERMISSIONS: readonly Permission[] = [
   "journal:read",
 ];
 
-export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
+export const ROLE_PERMISSIONS = {
   PROPRIETAIRE: OWNER_PERMISSIONS,
   SECRETAIRE: ["payments:read", "payments:create", "payments:update", "payments:delete"],
   COMPTABLE: ["payments:read", "payments:delete", "payments:stats"],
   ENSEIGNANT: [],
   AGENT: ["travel:read", "travel:create", "travel:update", "travel:delete"],
-};
+} as const satisfies Record<UserRole, readonly Permission[]>;
 
 /** Vérifie si un rôle possède une permission. Retourne false si rôle absent/inconnu. */
 export function hasPermission(
@@ -76,6 +71,6 @@ export function hasPermission(
   permission: Permission
 ): boolean {
   if (!role) return false;
-  const perms = ROLE_PERMISSIONS[role];
-  return perms ? (perms as readonly string[]).includes(permission) : false;
+  const perms: readonly Permission[] | undefined = ROLE_PERMISSIONS[role];
+  return perms?.includes(permission) ?? false;
 }
