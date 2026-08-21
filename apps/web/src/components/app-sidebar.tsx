@@ -1,62 +1,50 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
-  Sprout,
-  LayoutDashboard,
-  GraduationCap,
-  Users,
-  Wallet,
-  Camera,
-  Calendar,
-  CalendarOff,
-  MessageCircle,
-  Bell,
-  QrCode,
-  BookOpen,
-  FileText,
-  UserCog,
-  Plane,
-  Shield,
+  Sprout, LayoutDashboard, GraduationCap, Users, Wallet, Camera,
+  Calendar, CalendarOff, MessageCircle, Bell, QrCode, BookOpen,
+  FileText, UserCog, Plane, Shield,
 } from "lucide-react";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarSeparator,
+  Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel,
+  SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { UserMenu } from "./user-menu";
+import { authClient, type SessionUser } from "@/lib/auth-client";
+import { hasPermission, type Permission } from "@verger/shared/src/permissions";
 
-/** Modules actifs vs à venir (grisés jusqu'à leur épisode) */
-const navItems = [
-  {
-    label: "École",
-    items: [
-      { href: "/dashboard", icon: LayoutDashboard, title: "Tableau de bord", disabled: false },
-      { href: "/niveaux", icon: GraduationCap, title: "Niveaux & Classes", disabled: false },
-      { href: "/eleves", icon: Users, title: "Élèves", disabled: false },
-      { href: "/absences", icon: CalendarOff, title: "Absences", disabled: false },
-      { href: "/notes", icon: BookOpen, title: "Notes", disabled: false },
-      { href: "/bulletins", icon: GraduationCap, title: "Bulletins", disabled: false },
-      { href: "/factures", icon: FileText, title: "Factures", disabled: false },
-      { href: "/notifications", icon: Bell, title: "Notifications", disabled: false },
-      { href: "/whatsapp", icon: MessageCircle, title: "WhatsApp", disabled: false },
-      { href: "/evenements", icon: Calendar, title: "Événements", disabled: false },
-      { href: "/budget", icon: Wallet, title: "Budget & Dépenses", disabled: false },
-      { href: "/personnel", icon: UserCog, title: "Personnel", disabled: false },
-      { href: "/voyage", icon: Plane, title: "Voyage", disabled: false },
-      { href: "/journal", icon: Shield, title: "Journal", disabled: false },
-    ],
-  },
+type NavItem = { href: string; icon: typeof LayoutDashboard; title: string; perm: Permission };
+
+/** Module de navigation requis pour voir chaque page (permission :read du module). */
+const navItems: NavItem[] = [
+  { href: "/dashboard", icon: LayoutDashboard, title: "Tableau de bord", perm: "dashboard:read" },
+  { href: "/niveaux", icon: GraduationCap, title: "Niveaux & Classes", perm: "levels:read" },
+  { href: "/eleves", icon: Users, title: "Élèves", perm: "students:read" },
+  { href: "/absences", icon: CalendarOff, title: "Absences", perm: "absences:read" },
+  { href: "/notes", icon: BookOpen, title: "Notes", perm: "grades:read" },
+  { href: "/bulletins", icon: GraduationCap, title: "Bulletins", perm: "grades:read" },
+  { href: "/factures", icon: FileText, title: "Factures", perm: "invoices:read" },
+  { href: "/paiements", icon: Wallet, title: "Paiements", perm: "payments:read" },
+  { href: "/notifications", icon: Bell, title: "Notifications", perm: "notifications:read" },
+  { href: "/whatsapp", icon: MessageCircle, title: "WhatsApp", perm: "whatsapp:read" },
+  { href: "/evenements", icon: Calendar, title: "Événements", perm: "events:read" },
+  { href: "/budget", icon: Wallet, title: "Budget & Dépenses", perm: "expenses:read" },
+  { href: "/personnel", icon: UserCog, title: "Personnel", perm: "staff:read" },
+  { href: "/voyage", icon: Plane, title: "Voyage", perm: "travel:read" },
+  { href: "/journal", icon: Shield, title: "Journal", perm: "journal:read" },
 ];
 
 export function AppSidebar() {
+  const [user, setUser] = useState<SessionUser | null>(null);
+
+  useEffect(() => {
+    authClient.getSession().then(({ data }) => setUser(data?.user ?? null));
+  }, []);
+
+  const visible = user ? navItems.filter((i) => hasPermission(user.role as any, i.perm)) : [];
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -77,37 +65,21 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        {navItems.map((group) => (
-          <SidebarGroup key={group.label}>
-            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
-            <SidebarMenu>
-              {group.items.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton
-                    asChild={!item.disabled}
-                    disabled={item.disabled}
-                    tooltip={item.disabled ? `${item.title} (bientôt)` : item.title}
-                  >
-                    {item.disabled ? (
-                      <span className="flex items-center gap-2 opacity-50">
-                        <item.icon className="size-4" />
-                        <span>{item.title}</span>
-                        <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-[10px]">
-                          bientôt
-                        </span>
-                      </span>
-                    ) : (
-                      <Link href={item.href}>
-                        <item.icon className="size-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroup>
-        ))}
+        <SidebarGroup>
+          <SidebarGroupLabel>École</SidebarGroupLabel>
+          <SidebarMenu>
+            {visible.map((item) => (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton asChild tooltip={item.title}>
+                  <Link href={item.href}>
+                    <item.icon className="size-4" />
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
         <SidebarSeparator className="my-2" />
       </SidebarContent>
       <SidebarFooter>
