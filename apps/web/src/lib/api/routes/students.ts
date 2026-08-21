@@ -19,7 +19,7 @@ function currentSchoolYear(): string {
 async function generateMatricule(db: ReturnType<typeof createDb>, schoolYear: string): Promise<string> {
   const year = schoolYear.split("-")[0];
   const [result] = await db
-    .select({ max: sql<number>`max(substring(matricule from 'ELE-${year}-(\\d+)$')::int)` })
+    .select({ max: sql<number>`max(substring(matricule from ${`ELE-${year}-(\\d+)$`})::int)` })
     .from(students);
   const next = (result?.max ?? 0) + 1;
   return `ELE-${year}-${String(next).padStart(3, "0")}`;

@@ -20,7 +20,7 @@ async function generateInvoiceNumber(db: ReturnType<typeof createDb>): Promise<s
   const year = new Date().getFullYear();
   const prefix = `FAC-${year}`;
   const [result] = await db
-    .select({ max: sql<number>`max(substring(number from '${prefix}(\\d+)$')::int)` })
+    .select({ max: sql<number>`max(substring(number from ${`${prefix}(\\d+)$`})::int)` })
     .from(invoices);
   const next = (result?.max ?? 0) + 1;
   return `${prefix}${String(next).padStart(4, "0")}`;
