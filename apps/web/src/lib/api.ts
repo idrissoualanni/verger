@@ -21,7 +21,24 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    throw new ApiError(body?.error ?? `Erreur ${res.status}`, res.status);
+    if (res.status === 401) {
+      // Session absente/expirée → redirection vers le login (option A du plan
+      // RBAC). On évite la boucle si on est déjà sur /login.
+      if (
+        typeof window !== "undefined" &&
+        !window.location.pathname.startsWith("/login")
+      ) {
+        const cb = encodeURIComponent(
+          window.location.pathname + window.location.search
+        );
+        window.location.href = `/login?callbackUrl=${cb}`;
+      }
+      throw new ApiError("Veuillez vous connecter", 401);
+    }
+    if (res.status === 403) {
+      throw new ApiError("Accès refusé pour votre rôle", 403);
+    }
+    throw new ApiError((body as any)?.error ?? `Erreur ${res.status}`, res.status);
   }
   return res.json() as Promise<T>;
 }
