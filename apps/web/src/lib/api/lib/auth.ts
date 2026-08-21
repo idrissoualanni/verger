@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { jwt } from "better-auth/plugins";
 import { dash } from "@better-auth/infra";
-import { createDb, type DbEnv } from "./db.js";
+import { createDb, type DbEnv } from "./db";
 
 export interface AuthEnv extends DbEnv {
   BETTER_AUTH_SECRET: string;

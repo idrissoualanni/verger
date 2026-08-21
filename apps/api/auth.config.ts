@@ -35,4 +35,16 @@ export const auth = betterAuth({
       },
     },
   },
+  // Ferme l'escalade de privilèges : le rôle n'est plus choisissable au
+  // signup — toute inscription devient SECRETAIRE. PROPRIETAIRE est posé
+  // par mise à jour directe en base (script create-owner).
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          return { data: { ...user, role: "SECRETAIRE" } };
+        },
+      },
+    },
+  },
 });

@@ -6,10 +6,15 @@
  *     node_modules/.bin/tsx scripts/create-owner.ts
  *
  * Variables requises : OWNER_EMAIL, OWNER_PASSWORD (OWNER_NAME optionnel).
- * Le compte est créé avec le rôle PROPRIETAIRE via l'API Better Auth
- * (signUpEmail + additionalFields.role).
+ *
+ * Le signup force désormais SECRETAIRE (hook databaseHooks — fermeture de
+ * l'escalade de privilèges). Ce script pose donc le rôle PROPRIETAIRE par
+ * mise à jour directe en base, après la création du compte.
  */
+import { eq } from "drizzle-orm";
 import { auth } from "../auth.config.js";
+import { user } from "@verger/shared/src/auth-schema.js";
+import { createDb } from "../src/lib/db.js";
 
 const email = process.env.OWNER_EMAIL;
 const password = process.env.OWNER_PASSWORD;
@@ -26,16 +31,22 @@ try {
       email,
       password,
       name,
-      // Champ custom à PLAT dans le body (le schéma sign-up/email n'imbrique
-      // pas `data` : z.object(...).and(z.record(z.string(), z.any())))
-      role: "PROPRIETAIRE",
     },
   });
+
+  // Pose le rôle PROPRIETAIRE directement en base (contourne le hook signup).
+  const db = createDb({
+    DATABASE_URL:
+      process.env.DATABASE_URL ??
+      "postgresql://u:p@localhost:5432/verger",
+  });
+  await db.update(user).set({ role: "PROPRIETAIRE" }).where(eq(user.email, email));
+
   console.log(
     "Compte propriétaire créé :",
     result.user.email,
     "| role:",
-    result.user.role
+    "PROPRIETAIRE"
   );
 } catch (err) {
   console.error(
