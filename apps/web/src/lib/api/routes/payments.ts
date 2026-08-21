@@ -19,6 +19,7 @@ import {
   parents,
   user,
 } from "@verger/shared/src/schema";
+import { requirePerm } from "../lib/permissions";
 
 export const paymentsRoutes = new Hono<{
   Bindings: { DATABASE_URL: string };
@@ -39,20 +40,12 @@ const methodLabels: Record<string, string> = {
   VIREMENT: "Virement",
 };
 
-const ALLOWED_ROLES = ["PROPRIETAIRE", "SECRETAIRE", "COMPTABLE"] as const;
-
-async function requireAuth(c: { var: { auth: any }; req: { raw: Request } }): Promise<any> {
-  const session = await c.var.auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session?.user || !ALLOWED_ROLES.includes(session.user.role)) return null;
-  return session.user;
-}
-
 /* ------------------------------------------------------------------ */
 /* GET /api/payments → liste filtrée                                    */
 /* ------------------------------------------------------------------ */
 paymentsRoutes.get("/payments", async (c) => {
-  const authUser = await requireAuth(c);
-  if (!authUser) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "payments:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const url = new URL(c.req.url);
@@ -111,13 +104,9 @@ paymentsRoutes.get("/payments", async (c) => {
 /* POST /api/payments → créer un paiement                               */
 /* ------------------------------------------------------------------ */
 paymentsRoutes.post("/payments", async (c) => {
-  const authUser = await requireAuth(c);
-  if (!authUser) return c.json({ error: "Non autorisé" }, 401);
-
-  // SECRETAIRE peut créer, COMPTABLE non
-  if (authUser.role === "COMPTABLE") {
-    return c.json({ error: "Le comptable ne peut pas créer de paiement" }, 403);
-  }
+  const auth = await requirePerm(c, "payments:create");
+  if ("res" in auth) return auth.res;
+  const { user: authUser } = auth;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.studentId || !body?.amount || !body?.method || !body?.month) {
@@ -180,13 +169,8 @@ paymentsRoutes.post("/payments", async (c) => {
 /* PATCH /api/payments/:id → modifier statut                            */
 /* ------------------------------------------------------------------ */
 paymentsRoutes.patch("/payments/:id", async (c) => {
-  const authUser = await requireAuth(c);
-  if (!authUser) return c.json({ error: "Non autorisé" }, 401);
-
-  // COMPTABLE ne peut pas modifier
-  if (authUser.role === "COMPTABLE") {
-    return c.json({ error: "Le comptable ne peut pas modifier de paiement" }, 403);
-  }
+  const auth = await requirePerm(c, "payments:update");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.status) {
@@ -223,13 +207,8 @@ paymentsRoutes.patch("/payments/:id", async (c) => {
 /* GET /api/payments/stats → stats agrégées                             */
 /* ------------------------------------------------------------------ */
 paymentsRoutes.get("/payments/stats", async (c) => {
-  const authUser = await requireAuth(c);
-  if (!authUser) return c.json({ error: "Non autorisé" }, 401);
-
-  // COMPTABLE et PROPRIETAIRE voient les stats, SECRETAIRE non
-  if (authUser.role === "SECRETAIRE") {
-    return c.json({ error: "La secrétaire ne peut pas voir les statistiques" }, 403);
-  }
+  const auth = await requirePerm(c, "payments:stats");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const url = new URL(c.req.url);
@@ -302,8 +281,8 @@ paymentsRoutes.get("/payments/stats", async (c) => {
 /* GET /api/payments/unpaid → élèves sans paiement pour un mois         */
 /* ------------------------------------------------------------------ */
 paymentsRoutes.get("/payments/unpaid", async (c) => {
-  const authUser = await requireAuth(c);
-  if (!authUser) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "payments:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const url = new URL(c.req.url);
