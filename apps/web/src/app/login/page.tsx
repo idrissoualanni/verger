@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { LoginForm } from "@/components/login-form";
@@ -34,7 +35,9 @@ export default function LoginPage() {
           <Link href="/" className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
             ← Retour à l&apos;accueil
           </Link>
-          <LoginForm />
+          <Suspense fallback={<div className="text-center text-muted-foreground">Chargement…</div>}>
+            <LoginForm />
+          </Suspense>
         </div>
       </div>
     </div>

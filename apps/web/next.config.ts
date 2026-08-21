@@ -1,41 +1,41 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
-const API_URL = process.env.API_URL ?? "http://localhost:8788";
-const IS_PROD = process.env.NODE_ENV === "production";
+const MONOREPO_ROOT = path.resolve(__dirname, "../..");
 
 const nextConfig: NextConfig = {
-  // Cloudflare Pages : output standalone pour déploiement optimisé
-  output: IS_PROD ? "standalone" : undefined,
-
-  // Images : autoriser Unsplash (landing, login, register, tarifs) + R2 en prod
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https" as const,
-        hostname: "images.unsplash.com",
-      },
-      ...(IS_PROD
-        ? [
-            {
-              protocol: "https" as const,
-              hostname: "**.r2.cloudflarestorage.com",
-            },
-          ]
-        : []),
-    ],
+  // Turbopack: monorepo root pour résoudre les packages via symlinks pnpm
+  turbopack: {
+    root: MONOREPO_ROOT,
   },
 
-  /* Proxy /api/* → worker (apps/api). Cookies de session first-party :
-     le navigateur parle toujours à localhost:3000, le worker valide la
-     session via le cookie signé. En prod, pointer API_URL vers le domaine
-     du worker (déploiement E22). */
-  async rewrites() {
-    return [
+  // Aligner outputFileTracingRoot avec turbopack.root
+  outputFileTracingRoot: MONOREPO_ROOT,
+
+  // OpenNext a besoin du standalone pour le bundle Cloudflare
+  output: "standalone",
+
+  // Exclure les modules natifs du bundle (pas compatibles Workers)
+  serverExternalPackages: ["sharp"],
+
+  // Exclure sharp du tracing
+  outputFileTracingExcludes: {
+    "*": ["node_modules/sharp/**", "node_modules/@img/**"],
+  },
+
+  // Images : désactivation de l'optimisation Next (sharp)
+  images: {
+    unoptimized: true,
+    remotePatterns: [
       {
-        source: "/api/:path*",
-        destination: `${API_URL}/api/:path*`,
+        protocol: "https",
+        hostname: "images.unsplash.com",
       },
-    ];
+      {
+        protocol: "https",
+        hostname: "**.r2.cloudflarestorage.com",
+      },
+    ],
   },
 };
 

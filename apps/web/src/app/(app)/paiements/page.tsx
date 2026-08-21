@@ -197,8 +197,8 @@ export default function PaiementsPage() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/api/auth/session");
-        const data = await res.json();
+        const res = await fetch("/api/auth/get-session");
+        const data = await res.json() as any;
         if (data?.session?.user?.role) {
           setUserRole(data.session.user.role);
         }
