@@ -8,17 +8,13 @@ import {
   parents,
   classes,
 } from "@verger/shared/src/schema.js";
+import { requirePerm } from "../lib/permissions.js";
 
 export const invoicesRoutes = new Hono<{
   Bindings: { DATABASE_URL: string };
   Variables: { auth: { api: any } };
 }>();
 
-async function requireOwner(c: { var: { auth: any }; req: { raw: Request } }): Promise<any> {
-  const session = await c.var.auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session?.user || session.user.role !== "PROPRIETAIRE") return null;
-  return session.user;
-}
 
 async function generateInvoiceNumber(db: ReturnType<typeof createDb>): Promise<string> {
   const year = new Date().getFullYear();
@@ -34,7 +30,8 @@ async function generateInvoiceNumber(db: ReturnType<typeof createDb>): Promise<s
 // GET /api/invoices → liste filtrée
 // ------------------------------------------------------------------
 invoicesRoutes.get("/invoices", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "invoices:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const url = new URL(c.req.url);
@@ -86,7 +83,8 @@ invoicesRoutes.get("/invoices", async (c) => {
 // POST /api/invoices → créer facture avec lignes
 // ------------------------------------------------------------------
 invoicesRoutes.post("/invoices", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "invoices:create");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.studentId || !body?.items || !Array.isArray(body.items) || body.items.length === 0) {
@@ -152,7 +150,8 @@ invoicesRoutes.post("/invoices", async (c) => {
 // GET /api/invoices/:id → détail
 // ------------------------------------------------------------------
 invoicesRoutes.get("/invoices/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "invoices:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const invoice = await db.query.invoices.findFirst({
@@ -176,7 +175,8 @@ invoicesRoutes.get("/invoices/:id", async (c) => {
 // PATCH /api/invoices/:id → modifier statut, marquer payée
 // ------------------------------------------------------------------
 invoicesRoutes.patch("/invoices/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "invoices:update");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body) return c.json({ error: "Corps invalide" }, 400);
@@ -206,7 +206,8 @@ invoicesRoutes.patch("/invoices/:id", async (c) => {
 // DELETE /api/invoices/:id → supprimer (si pas payée)
 // ------------------------------------------------------------------
 invoicesRoutes.delete("/invoices/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "invoices:delete");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const invoice = await db.query.invoices.findFirst({
@@ -228,7 +229,8 @@ invoicesRoutes.delete("/invoices/:id", async (c) => {
 // POST /api/invoices/:id/send → envoyer au parent (WhatsApp simulé)
 // ------------------------------------------------------------------
 invoicesRoutes.post("/invoices/:id/send", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "invoices:create");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const invoice = await db.query.invoices.findFirst({
@@ -272,7 +274,8 @@ invoicesRoutes.post("/invoices/:id/send", async (c) => {
 // GET /api/invoices/stats → total facturé, payé, en attente
 // ------------------------------------------------------------------
 invoicesRoutes.get("/invoices/stats", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "invoices:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
 

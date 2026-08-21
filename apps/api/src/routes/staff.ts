@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { eq, desc, sql, like, or, and } from "drizzle-orm";
 import { createDb } from "../lib/db.js";
 import { staff, staffRoleEnum } from "@verger/shared/src/schema.js";
+import { requirePerm } from "../lib/permissions.js";
 
 type StaffRole = typeof staffRoleEnum.enumValues[number];
 
@@ -10,17 +11,13 @@ export const staffRoutes = new Hono<{
   Variables: { auth: { api: any } };
 }>();
 
-async function requireOwner(c: { var: { auth: any }; req: { raw: Request } }): Promise<any> {
-  const session = await c.var.auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session?.user || session.user.role !== "PROPRIETAIRE") return null;
-  return session.user;
-}
 
 // ------------------------------------------------------------------
 // GET /api/staff → liste filtrée
 // ------------------------------------------------------------------
 staffRoutes.get("/staff", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "staff:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const url = new URL(c.req.url);
@@ -52,7 +49,8 @@ staffRoutes.get("/staff", async (c) => {
 // POST /api/staff → créer un membre du personnel
 // ------------------------------------------------------------------
 staffRoutes.post("/staff", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "staff:create");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.name || !body?.role || !body?.hireDate) {
@@ -82,7 +80,8 @@ staffRoutes.post("/staff", async (c) => {
 // PATCH /api/staff/:id → modifier
 // ------------------------------------------------------------------
 staffRoutes.patch("/staff/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "staff:update");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body) return c.json({ error: "Corps invalide" }, 400);
@@ -112,7 +111,8 @@ staffRoutes.patch("/staff/:id", async (c) => {
 // DELETE /api/staff/:id → désactiver (soft delete)
 // ------------------------------------------------------------------
 staffRoutes.delete("/staff/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "staff:delete");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const updated = await db
@@ -129,7 +129,8 @@ staffRoutes.delete("/staff/:id", async (c) => {
 // GET /api/staff/stats → stats par rôle, masse salariale totale
 // ------------------------------------------------------------------
 staffRoutes.get("/staff/stats", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "staff:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
 

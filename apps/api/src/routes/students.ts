@@ -2,17 +2,13 @@ import { Hono } from "hono";
 import { eq, desc, sql, like, or, and } from "drizzle-orm";
 import { createDb } from "../lib/db.js";
 import { students, classes, levels, parents } from "@verger/shared/src/schema.js";
+import { requirePerm } from "../lib/permissions.js";
 
 export const studentsRoutes = new Hono<{
   Bindings: { DATABASE_URL: string };
   Variables: { auth: { api: any } };
 }>();
 
-async function requireOwner(c: { var: { auth: any }; req: { raw: Request } }): Promise<any> {
-  const session = await c.var.auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session?.user || session.user.role !== "PROPRIETAIRE") return null;
-  return session.user;
-}
 
 function currentSchoolYear(): string {
   const now = new Date();
@@ -33,7 +29,8 @@ async function generateMatricule(db: ReturnType<typeof createDb>, schoolYear: st
 // GET /api/students → liste paginée avec filtres
 // ------------------------------------------------------------------
 studentsRoutes.get("/students", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "students:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const url = new URL(c.req.url);
@@ -82,7 +79,8 @@ studentsRoutes.get("/students", async (c) => {
 // POST /api/students → créer un élève
 // ------------------------------------------------------------------
 studentsRoutes.post("/students", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "students:create");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.firstName || !body?.lastName || !body?.dateOfBirth || !body?.gender || !body?.classId || !body?.parentId) {
@@ -117,7 +115,8 @@ studentsRoutes.post("/students", async (c) => {
 // GET /api/students/count → total
 // ------------------------------------------------------------------
 studentsRoutes.get("/students/count", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "students:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const [result] = await db.select({ total: sql<number>`count(*)` }).from(students).where(eq(students.isActive, true));
@@ -128,7 +127,8 @@ studentsRoutes.get("/students/count", async (c) => {
 // GET /api/students/by-level → groupé par niveau
 // ------------------------------------------------------------------
 studentsRoutes.get("/students/by-level", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "students:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const result = await db
@@ -150,7 +150,8 @@ studentsRoutes.get("/students/by-level", async (c) => {
 // GET /api/students/by-gender → répartition par genre
 // ------------------------------------------------------------------
 studentsRoutes.get("/students/by-gender", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "students:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const result = await db
@@ -169,7 +170,8 @@ studentsRoutes.get("/students/by-gender", async (c) => {
 // GET /api/students/recent → 5 derniers inscrits
 // ------------------------------------------------------------------
 studentsRoutes.get("/students/recent", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "students:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const result = await db.query.students.findMany({
@@ -188,7 +190,8 @@ studentsRoutes.get("/students/recent", async (c) => {
 // GET /api/students/:id → fiche détaillée
 // ------------------------------------------------------------------
 studentsRoutes.get("/students/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "students:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const student = await db.query.students.findFirst({
@@ -211,7 +214,8 @@ studentsRoutes.get("/students/:id", async (c) => {
 // PATCH /api/students/:id → modifier
 // ------------------------------------------------------------------
 studentsRoutes.patch("/students/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "students:update");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body) return c.json({ error: "Corps invalide" }, 400);
@@ -240,7 +244,8 @@ studentsRoutes.patch("/students/:id", async (c) => {
 // DELETE /api/students/:id → désactiver (soft delete)
 // ------------------------------------------------------------------
 studentsRoutes.delete("/students/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "students:delete");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const updated = await db
@@ -259,7 +264,8 @@ studentsRoutes.delete("/students/:id", async (c) => {
 
 // GET /api/parents → liste
 studentsRoutes.get("/parents", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "students:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const result = await db.query.parents.findMany({
@@ -270,7 +276,8 @@ studentsRoutes.get("/parents", async (c) => {
 
 // POST /api/parents → créer un parent
 studentsRoutes.post("/parents", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "students:create");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.name || !body?.phone) {

@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { eq, count } from "drizzle-orm";
 import { createDb } from "../lib/db.js";
 import { levels, classes } from "@verger/shared/src/schema.js";
+import { requirePerm } from "../lib/permissions.js";
 
 /**
  * Routes niveaux & classes — protégées : session + rôle PROPRIETAIRE.
@@ -14,12 +15,6 @@ export const levelsRoutes = new Hono<{
   Variables: { auth: { api: any } };
 }>();
 
-/** Vérifie session + rôle PROPRIETAIRE. Renvoie l'utilisateur ou null. */
-async function requireOwner(c: { var: { auth: any }; req: { raw: Request } }): Promise<any> {
-  const session = await c.var.auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session?.user || session.user.role !== "PROPRIETAIRE") return null;
-  return session.user;
-}
 
 // ------------------------------------------------------------------
 // Niveaux (Primaire, Collège, Lycée…)
@@ -27,7 +22,8 @@ async function requireOwner(c: { var: { auth: any }; req: { raw: Request } }): P
 
 // GET /api/levels → niveaux + leurs classes, ordonnés
 levelsRoutes.get("/levels", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "levels:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const result = await db.query.levels.findMany({
@@ -39,7 +35,8 @@ levelsRoutes.get("/levels", async (c) => {
 
 // POST /api/levels → créer un niveau
 levelsRoutes.post("/levels", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "levels:create");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.name) return c.json({ error: "Le nom est requis" }, 400);
@@ -59,7 +56,8 @@ levelsRoutes.post("/levels", async (c) => {
 
 // PATCH /api/levels/:id → renommer / réordonner
 levelsRoutes.patch("/levels/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "levels:update");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body) return c.json({ error: "Corps invalide" }, 400);
@@ -80,7 +78,8 @@ levelsRoutes.patch("/levels/:id", async (c) => {
 
 // DELETE /api/levels/:id → refus si des classes y sont rattachées
 levelsRoutes.delete("/levels/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "levels:delete");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const [linked] = await db
@@ -105,7 +104,8 @@ levelsRoutes.delete("/levels/:id", async (c) => {
 
 // POST /api/classes → créer une classe
 levelsRoutes.post("/classes", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "levels:create");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.name || !body?.levelId || !body?.schoolYear) {
@@ -128,7 +128,8 @@ levelsRoutes.post("/classes", async (c) => {
 
 // PATCH /api/classes/:id → modifier une classe
 levelsRoutes.patch("/classes/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "levels:update");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body) return c.json({ error: "Corps invalide" }, 400);
@@ -150,7 +151,8 @@ levelsRoutes.patch("/classes/:id", async (c) => {
 
 // DELETE /api/classes/:id → refus si des élèves y sont rattachés
 levelsRoutes.delete("/classes/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "levels:delete");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const [linked] = await db

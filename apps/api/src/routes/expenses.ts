@@ -3,23 +3,20 @@ import { eq, desc, and, sql } from "drizzle-orm";
 import { createDb } from "../lib/db.js";
 import { expenses, payments, expenseCategoryEnum } from "@verger/shared/src/schema.js";
 import { EXPENSE_CATEGORIES } from "@verger/shared";
+import { requirePerm } from "../lib/permissions.js";
 
 export const expensesRoutes = new Hono<{
   Bindings: { DATABASE_URL: string };
   Variables: { auth: { api: any } };
 }>();
 
-async function requireOwner(c: { var: { auth: any }; req: { raw: Request } }): Promise<any> {
-  const session = await c.var.auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session?.user || session.user.role !== "PROPRIETAIRE") return null;
-  return session.user;
-}
 
 // ------------------------------------------------------------------
 // GET /api/expenses → liste filtrée
 // ------------------------------------------------------------------
 expensesRoutes.get("/expenses", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "expenses:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const url = new URL(c.req.url);
@@ -46,7 +43,8 @@ expensesRoutes.get("/expenses", async (c) => {
 // POST /api/expenses → créer une dépense
 // ------------------------------------------------------------------
 expensesRoutes.post("/expenses", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "expenses:create");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.category || !body?.description || !body?.amount || !body?.date) {
@@ -72,7 +70,8 @@ expensesRoutes.post("/expenses", async (c) => {
 // PATCH /api/expenses/:id → modifier
 // ------------------------------------------------------------------
 expensesRoutes.patch("/expenses/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "expenses:update");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body) return c.json({ error: "Corps invalide" }, 400);
@@ -97,7 +96,8 @@ expensesRoutes.patch("/expenses/:id", async (c) => {
 // DELETE /api/expenses/:id → supprimer
 // ------------------------------------------------------------------
 expensesRoutes.delete("/expenses/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "expenses:delete");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const deleted = await db
@@ -113,7 +113,8 @@ expensesRoutes.delete("/expenses/:id", async (c) => {
 // GET /api/expenses/stats → stats par catégorie
 // ------------------------------------------------------------------
 expensesRoutes.get("/expenses/stats", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "expenses:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const url = new URL(c.req.url);
@@ -156,7 +157,8 @@ expensesRoutes.get("/expenses/stats", async (c) => {
 // GET /api/expenses/monthly → évolution mensuelle revenus vs dépenses
 // ------------------------------------------------------------------
 expensesRoutes.get("/expenses/monthly", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "expenses:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
 
@@ -210,7 +212,8 @@ expensesRoutes.get("/expenses/monthly", async (c) => {
 // GET /api/budget → vue d'ensemble financière
 // ------------------------------------------------------------------
 expensesRoutes.get("/budget", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "expenses:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
 

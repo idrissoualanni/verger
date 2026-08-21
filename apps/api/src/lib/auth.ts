@@ -8,6 +8,7 @@ export interface AuthEnv extends DbEnv {
   BETTER_AUTH_SECRET: string;
   BETTER_AUTH_URL: string;
   BETTER_AUTH_API_KEY?: string;
+  ORIGINS?: string;
 }
 
 /**
@@ -19,7 +20,10 @@ export function createAuth(env: AuthEnv) {
   return betterAuth({
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
-    trustedOrigins: ["http://localhost:3000"],
+    trustedOrigins: (env.ORIGINS ?? "http://localhost:3000")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
     database: drizzleAdapter(createDb(env), {
       provider: "pg",
       usePlural: false,

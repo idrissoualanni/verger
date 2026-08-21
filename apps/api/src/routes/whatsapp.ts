@@ -6,17 +6,13 @@ import {
   students,
   parents,
 } from "@verger/shared/src/schema.js";
+import { requirePerm } from "../lib/permissions.js";
 
 export const whatsappRoutes = new Hono<{
   Bindings: { DATABASE_URL: string };
   Variables: { auth: { api: any } };
 }>();
 
-async function requireOwner(c: { var: { auth: any }; req: { raw: Request } }): Promise<any> {
-  const session = await c.var.auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session?.user || session.user.role !== "PROPRIETAIRE") return null;
-  return session.user;
-}
 
 function simulateSend(): { success: boolean; errorMessage?: string } {
   if (Math.random() < 0.9) {
@@ -35,7 +31,8 @@ function simulateSend(): { success: boolean; errorMessage?: string } {
 // POST /api/whatsapp/send → envoyer un message
 // ------------------------------------------------------------------
 whatsappRoutes.post("/whatsapp/send", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "whatsapp:create");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.phoneNumber || !body?.message) {
@@ -67,7 +64,8 @@ whatsappRoutes.post("/whatsapp/send", async (c) => {
 // POST /api/whatsapp/send-bulk → envoi à plusieurs numéros
 // ------------------------------------------------------------------
 whatsappRoutes.post("/whatsapp/send-bulk", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "whatsapp:create");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.messages || !Array.isArray(body.messages)) {
@@ -110,7 +108,8 @@ whatsappRoutes.post("/whatsapp/send-bulk", async (c) => {
 // GET /api/whatsapp/history → historique
 // ------------------------------------------------------------------
 whatsappRoutes.get("/whatsapp/history", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "whatsapp:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const url = new URL(c.req.url);
@@ -155,7 +154,8 @@ whatsappRoutes.get("/whatsapp/history", async (c) => {
 // GET /api/whatsapp/stats → statistiques
 // ------------------------------------------------------------------
 whatsappRoutes.get("/whatsapp/stats", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "whatsapp:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const url = new URL(c.req.url);

@@ -2,23 +2,20 @@ import { Hono } from "hono";
 import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
 import { createDb } from "../lib/db.js";
 import { events, whatsappMessages, students, classes, parents } from "@verger/shared/src/schema.js";
+import { requirePerm } from "../lib/permissions.js";
 
 export const eventsRoutes = new Hono<{
   Bindings: { DATABASE_URL: string };
   Variables: { auth: { api: any } };
 }>();
 
-async function requireOwner(c: { var: { auth: any }; req: { raw: Request } }): Promise<any> {
-  const session = await c.var.auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session?.user || session.user.role !== "PROPRIETAIRE") return null;
-  return session.user;
-}
 
 // ------------------------------------------------------------------
 // GET /api/events → liste filtrée
 // ------------------------------------------------------------------
 eventsRoutes.get("/events", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "events:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const url = new URL(c.req.url);
@@ -51,7 +48,8 @@ eventsRoutes.get("/events", async (c) => {
 // POST /api/events → créer un événement
 // ------------------------------------------------------------------
 eventsRoutes.post("/events", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "events:create");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.title || !body?.date || !body?.type || !body?.audience) {
@@ -81,7 +79,8 @@ eventsRoutes.post("/events", async (c) => {
 // PATCH /api/events/:id → modifier
 // ------------------------------------------------------------------
 eventsRoutes.patch("/events/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "events:update");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body) return c.json({ error: "Corps invalide" }, 400);
@@ -109,7 +108,8 @@ eventsRoutes.patch("/events/:id", async (c) => {
 // DELETE /api/events/:id → supprimer
 // ------------------------------------------------------------------
 eventsRoutes.delete("/events/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "events:delete");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const deleted = await db
@@ -125,7 +125,8 @@ eventsRoutes.delete("/events/:id", async (c) => {
 // POST /api/events/:id/notify → envoyer notification WhatsApp aux parents ciblés
 // ------------------------------------------------------------------
 eventsRoutes.post("/events/:id/notify", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "events:create");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const eventId = c.req.param("id");

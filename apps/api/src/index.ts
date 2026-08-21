@@ -23,6 +23,7 @@ interface Bindings {
   BETTER_AUTH_URL: string;
   BETTER_AUTH_API_KEY?: string;
   NOTIFICATION_HUB: DurableObjectNamespace;
+  ORIGINS?: string;
 }
 
 interface Variables {
@@ -60,8 +61,14 @@ app.use("*", async (c, next) => {
   await next();
 });
 
-// CORS
-app.use("/api/*", cors({ origin: ["http://localhost:3000"], credentials: true }));
+// CORS — origines dynamiques via ORIGINS (virgule-séparé)
+app.use("/api/*", async (c, next) => {
+  const allowedOrigins = (c.env.ORIGINS ?? "http://localhost:3000")
+    .split(",")
+    .map((s: string) => s.trim())
+    .filter(Boolean);
+  return cors({ origin: allowedOrigins, credentials: true })(c, next);
+});
 
 app.use("*", async (c, next) => {
   const auth = createAuth({
@@ -69,6 +76,7 @@ app.use("*", async (c, next) => {
     BETTER_AUTH_SECRET: c.env.BETTER_AUTH_SECRET,
     BETTER_AUTH_URL: c.env.BETTER_AUTH_URL,
     BETTER_AUTH_API_KEY: c.env.BETTER_AUTH_API_KEY,
+    ORIGINS: c.env.ORIGINS,
   });
   c.set("auth", auth);
   await next();

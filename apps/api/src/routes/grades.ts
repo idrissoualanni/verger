@@ -8,17 +8,13 @@ import {
   classes,
   levels,
 } from "@verger/shared/src/schema.js";
+import { requirePerm } from "../lib/permissions.js";
 
 export const gradesRoutes = new Hono<{
   Bindings: { DATABASE_URL: string };
   Variables: { auth: { api: any } };
 }>();
 
-async function requireOwner(c: { var: { auth: any }; req: { raw: Request } }): Promise<any> {
-  const session = await c.var.auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session?.user || session.user.role !== "PROPRIETAIRE") return null;
-  return session.user;
-}
 
 function currentSchoolYear(): string {
   const now = new Date();
@@ -41,7 +37,8 @@ const DEFAULT_SUBJECTS = [
 // GET /api/subjects → liste des matières (seed auto si vide)
 // ------------------------------------------------------------------
 gradesRoutes.get("/subjects", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "grades:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   let result = await db.query.subjects.findMany({
@@ -64,7 +61,8 @@ gradesRoutes.get("/subjects", async (c) => {
 // POST /api/subjects → créer une matière
 // ------------------------------------------------------------------
 gradesRoutes.post("/subjects", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "grades:create");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.name) return c.json({ error: "Le nom est requis" }, 400);
@@ -86,7 +84,8 @@ gradesRoutes.post("/subjects", async (c) => {
 // PATCH /api/subjects/:id → modifier une matière
 // ------------------------------------------------------------------
 gradesRoutes.patch("/subjects/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "grades:update");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body) return c.json({ error: "Corps invalide" }, 400);
@@ -109,7 +108,8 @@ gradesRoutes.patch("/subjects/:id", async (c) => {
 // DELETE /api/subjects/:id → supprimer une matière
 // ------------------------------------------------------------------
 gradesRoutes.delete("/subjects/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "grades:delete");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const deleted = await db
@@ -125,7 +125,8 @@ gradesRoutes.delete("/subjects/:id", async (c) => {
 // GET /api/grades?studentId=&classId=&subjectId=&trimester=&schoolYear=
 // ------------------------------------------------------------------
 gradesRoutes.get("/grades", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "grades:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const url = new URL(c.req.url);
@@ -167,7 +168,8 @@ gradesRoutes.get("/grades", async (c) => {
 // POST /api/grades → créer/modifier des notes (batch)
 // ------------------------------------------------------------------
 gradesRoutes.post("/grades", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "grades:create");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.grades || !Array.isArray(body.grades)) {
@@ -208,7 +210,8 @@ gradesRoutes.post("/grades", async (c) => {
 // PATCH /api/grades/:id → modifier une note
 // ------------------------------------------------------------------
 gradesRoutes.patch("/grades/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "grades:update");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body) return c.json({ error: "Corps invalide" }, 400);
@@ -233,7 +236,8 @@ gradesRoutes.patch("/grades/:id", async (c) => {
 // DELETE /api/grades/:id → supprimer une note
 // ------------------------------------------------------------------
 gradesRoutes.delete("/grades/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "grades:delete");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const deleted = await db
@@ -250,7 +254,8 @@ gradesRoutes.delete("/grades/:id", async (c) => {
 //   → moyennes par élève et par matière
 // ------------------------------------------------------------------
 gradesRoutes.get("/grades/averages", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "grades:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const url = new URL(c.req.url);
@@ -355,7 +360,8 @@ gradesRoutes.get("/grades/averages", async (c) => {
 //   → bulletin complet d'un élève
 // ------------------------------------------------------------------
 gradesRoutes.get("/grades/bulletin", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "grades:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const url = new URL(c.req.url);

@@ -2,24 +2,19 @@ import { Hono } from "hono";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { createDb } from "../lib/db.js";
 import { travelAgencies, applications } from "@verger/shared/src/schema.js";
+import { requirePerm } from "../lib/permissions.js";
 
 export const travelRoutes = new Hono<{
   Bindings: { DATABASE_URL: string };
   Variables: { auth: { api: any } };
 }>();
 
-async function requireProprietaireOrAgent(c: { var: { auth: any }; req: { raw: Request } }): Promise<any> {
-  const session = await c.var.auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session?.user) return null;
-  if (session.user.role !== "PROPRIETAIRE" && session.user.role !== "AGENT") return null;
-  return session.user;
-}
-
 // ------------------------------------------------------------------
 // GET /api/travel/agencies → liste des agences
 // ------------------------------------------------------------------
 travelRoutes.get("/travel/agencies", async (c) => {
-  if (!(await requireProprietaireOrAgent(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "travel:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const isActive = c.req.query("isActive");
@@ -38,7 +33,8 @@ travelRoutes.get("/travel/agencies", async (c) => {
 // POST /api/travel/agencies → créer une agence
 // ------------------------------------------------------------------
 travelRoutes.post("/travel/agencies", async (c) => {
-  if (!(await requireProprietaireOrAgent(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "travel:create");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.name || !body?.phone) {
@@ -67,7 +63,8 @@ travelRoutes.post("/travel/agencies", async (c) => {
 // PATCH /api/travel/agencies/:id → modifier une agence
 // ------------------------------------------------------------------
 travelRoutes.patch("/travel/agencies/:id", async (c) => {
-  if (!(await requireProprietaireOrAgent(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "travel:update");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body) return c.json({ error: "Corps invalide" }, 400);
@@ -95,7 +92,8 @@ travelRoutes.patch("/travel/agencies/:id", async (c) => {
 // GET /api/travel/applications → candidatures avec filtres
 // ------------------------------------------------------------------
 travelRoutes.get("/travel/applications", async (c) => {
-  if (!(await requireProprietaireOrAgent(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "travel:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const studentId = c.req.query("studentId");
@@ -125,7 +123,8 @@ travelRoutes.get("/travel/applications", async (c) => {
 // POST /api/travel/applications → créer une candidature
 // ------------------------------------------------------------------
 travelRoutes.post("/travel/applications", async (c) => {
-  if (!(await requireProprietaireOrAgent(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "travel:create");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.studentId || !body?.agencyId) {
@@ -151,7 +150,8 @@ travelRoutes.post("/travel/applications", async (c) => {
 // PATCH /api/travel/applications/:id → modifier le statut
 // ------------------------------------------------------------------
 travelRoutes.patch("/travel/applications/:id", async (c) => {
-  if (!(await requireProprietaireOrAgent(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "travel:update");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body) return c.json({ error: "Corps invalide" }, 400);
@@ -179,7 +179,8 @@ travelRoutes.patch("/travel/applications/:id", async (c) => {
 // GET /api/travel/stats → statistiques candidatures
 // ------------------------------------------------------------------
 travelRoutes.get("/travel/stats", async (c) => {
-  if (!(await requireProprietaireOrAgent(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "travel:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const agencyId = c.req.query("agencyId");

@@ -2,23 +2,20 @@ import { Hono } from "hono";
 import { eq, desc, and, like, sql } from "drizzle-orm";
 import { createDb } from "../lib/db.js";
 import { absences, students, classes, parents } from "@verger/shared/src/schema.js";
+import { requirePerm } from "../lib/permissions.js";
 
 export const absencesRoutes = new Hono<{
   Bindings: { DATABASE_URL: string };
   Variables: { auth: { api: any } };
 }>();
 
-async function requireOwner(c: { var: { auth: any }; req: { raw: Request } }): Promise<any> {
-  const session = await c.var.auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session?.user || session.user.role !== "PROPRIETAIRE") return null;
-  return session.user;
-}
 
 // ------------------------------------------------------------------
 // GET /api/absences → liste filtrée
 // ------------------------------------------------------------------
 absencesRoutes.get("/absences", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "absences:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const url = new URL(c.req.url);
@@ -67,7 +64,8 @@ absencesRoutes.get("/absences", async (c) => {
 // POST /api/absences → créer une ou plusieurs absences (batch)
 // ------------------------------------------------------------------
 absencesRoutes.post("/absences", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "absences:create");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body) return c.json({ error: "Corps invalide" }, 400);
@@ -100,7 +98,8 @@ absencesRoutes.post("/absences", async (c) => {
 // PATCH /api/absences/:id → justifier/modifier
 // ------------------------------------------------------------------
 absencesRoutes.patch("/absences/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "absences:update");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body) return c.json({ error: "Corps invalide" }, 400);
@@ -124,7 +123,8 @@ absencesRoutes.patch("/absences/:id", async (c) => {
 // DELETE /api/absences/:id → supprimer
 // ------------------------------------------------------------------
 absencesRoutes.delete("/absences/:id", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "absences:delete");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const deleted = await db
@@ -140,7 +140,8 @@ absencesRoutes.delete("/absences/:id", async (c) => {
 // GET /api/absences/stats → stats par classe/mois
 // ------------------------------------------------------------------
 absencesRoutes.get("/absences/stats", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "absences:read");
+  if ("res" in auth) return auth.res;
 
   const db = createDb(c.env);
   const url = new URL(c.req.url);
@@ -204,7 +205,8 @@ absencesRoutes.get("/absences/stats", async (c) => {
 // POST /api/absences/notify → simulation WhatsApp
 // ------------------------------------------------------------------
 absencesRoutes.post("/absences/notify", async (c) => {
-  if (!(await requireOwner(c))) return c.json({ error: "Non autorisé" }, 401);
+  const auth = await requirePerm(c, "absences:create");
+  if ("res" in auth) return auth.res;
 
   const body = await c.req.json().catch(() => null);
   if (!body?.absenceIds || !Array.isArray(body.absenceIds)) {
