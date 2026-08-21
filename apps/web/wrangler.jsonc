@@ -21,5 +21,8 @@
   },
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["NotificationHub"] }
-  ]
+  ],
+  "observability": {
+    "enabled": true
+  }
 }
