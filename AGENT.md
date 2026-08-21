@@ -53,6 +53,8 @@ Flux critique : Secrétaire enregistre un paiement (même offline) → stocké I
 | ENSEIGNANT | Notes, absences, bulletins | Classes assignées uniquement | Phase 2 |
 | AGENT | Partenariats voyage, candidatures | Dossiers assignés uniquement | Phase 5 |
 
+**Implémentation effective (21/08/2026) :** la matrice `packages/shared/src/permissions.ts` (`ROLE_PERMISSIONS`, `hasPermission`) est la source de vérité. Câblés par le helper `requirePerm(c, permission)` dans les deux copies API : PROPRIETAIRE (tout), SECRETAIRE (payments read/create/update/delete), COMPTABLE (payments read/delete/stats), AGENT (travel). **ENSEIGNANT : zéro permission** (modules notes/absences non câblés). Erreurs distinctes : 401 « Non connecté » / 403 « Accès refusé pour votre rôle » ; le client redirige vers /login sur 401. La sidebar filtre ses entrées par `hasPermission`. Escalade de privilèges fermée : tout signup est forcé SECRETAIRE (`databaseHooks.user.create.before`) — seul `apps/api/scripts/create-owner.ts` pose PROPRIETAIRE (update direct en base).
+
 ## 5. Plan de construction — étapes
 
 Macro-phases **réordonnées : pédagogie avant finances** (décision utilisateur — le PRD plaçait les paiements en priorité ; conséquence assumée : le dashboard aura des KPIs financiers vides jusqu'à la phase Finances, et le temps réel se branche d'abord sur les absences/notes). Chaque étape = livrable fonctionnel + critère de validation.
