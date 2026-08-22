@@ -7,6 +7,9 @@ on:
       - "apps/web/**"
       - "packages/shared/**"
       - "e2e/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
