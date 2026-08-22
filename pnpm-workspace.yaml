@@ -1,6 +1,7 @@
 packages:
   - "apps/*"
   - "packages/*"
+  - "e2e"
 
 allowBuilds:
   '@prisma/client': true
@@ -14,7 +15,6 @@ allowBuilds:
 onlyBuiltDependencies:
   - esbuild
   - workerd
-  - unrs-resolver
   - sharp
   - '@prisma/client'
   - better-sqlite3

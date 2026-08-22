@@ -1,0 +1,12 @@
+{
+  "name": "@verger/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Le Verger — tests E2E Playwright (cible : worker verger en prod)",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}
