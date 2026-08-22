@@ -1,0 +1,56 @@
+name: Deploy verger
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "apps/web/**"
+      - "packages/shared/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-verger
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build OpenNext
+        working-directory: apps/web
+        env:
+          NEXT_PUBLIC_APP_URL: https://verger.sabel.workers.dev
+        run: |
+          npx tsx scripts/clean-sharp.ts
+          npx opennextjs-cloudflare build
+          npx tsx scripts/patch-opennext.ts
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Deploy to Cloudflare Workers
+        working-directory: apps/web
+        run: node node_modules/wrangler/bin/wrangler.js deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Smoke test
+        run: |
+          sleep 15
+          code=$(curl -s -o /dev/null -w "%{http_code}" https://verger.sabel.workers.dev/)
+          echo "GET / → HTTP $code"
+          [ "$code" = "200" ] || exit 1
