@@ -24,7 +24,10 @@ if (!email || !password) {
   process.exit(1);
 }
 
-try {
+// Pas de top-level await : apps/web est en CJS pour tsx (pas de "type":
+// "module" dans package.json). Les valeurs sont passées en paramètres :
+// TS ne propage pas le narrowing des guards dans une closure.
+async function main(email: string, password: string) {
   const result = await auth.api.signUpEmail({
     body: {
       email,
@@ -47,10 +50,12 @@ try {
     "| role:",
     "PROPRIETAIRE"
   );
-} catch (err) {
+}
+
+main(email, password).catch((err) => {
   console.error(
     "Échec de création :",
     err instanceof Error ? err.message : err
   );
   process.exit(1);
-}
+});
