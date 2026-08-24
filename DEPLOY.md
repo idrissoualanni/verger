@@ -1,309 +1,80 @@
 # Déploiement — Le Verger
 
-Guide de déploiement en production sur Cloudflare Pages (frontend) et Cloudflare Workers (API).
+> ⚠️ Ce document remplace l'ancienne architecture 2 workers (Pages + verger-api + verger-frontend),
+> supprimée en août 2026. **Un seul Worker déploie tout.**
 
 ---
 
-## Architecture de déploiement
+## Architecture
 
 ```
-[Cloudflare Pages] ──HTTP──> [Cloudflare Workers] ──Drizzle──> [Neon PostgreSQL]
-        │                          │
-        │                          ├── Upstash Redis (queue + cache)
-        │                          └── Durable Objects (WebSockets temps réel)
-        │
-    └─> https://le-verger-web.pages.dev
+[GitHub push master]
+   └─> GitHub Actions (deploy.yml)
+         ├─ pnpm test            (tests unitaires shared + web)
+         ├─ Build OpenNext       (apps/web, patch getMiddlewareManifest inclus)
+         ├─ wrangler deploy      → Worker "verger"
+         └─ job e2e              → Playwright contre la prod
+                                    https://verger.sabel.workers.dev
+                                          │
+        ┌─────────────────────────────────┤
+        │                                 │
+ [Next.js/OpenNext SSR]           [API Hono /api/*] ──Drizzle──> [Neon PostgreSQL]
+  assets statiques (ASSETS)               │
+                                          ├── Durable Object NotificationHub (WebSockets)
+                                          └── better-auth (sessions cookie, JWT pour Sentinel)
 ```
 
----
+- **Worker unique** `verger` : `custom-worker.ts` wrappe `.open-next/worker.js`
+  (front Next.js via OpenNext) + expose l'API Hono sur `/api/*` (catch-all
+  `src/app/api/[...all]/route.ts`) + le DO `NotificationHub`.
+- URL prod : **https://verger.sabel.workers.dev**
+- Base : **Neon** (`round-paper-78033335`, région eu-central-1, base `verger`).
+- Pas d'Upstash : le rate limiting est in-memory dans server.ts (100 req/min/IP).
 
-## 1. Prérequis
+## Secrets du Worker (wrangler secret put --name verger)
 
-### 1.1 Comptes à créer/configurer
+| Secret | Valeur |
+|---|---|
+| `DATABASE_URL` | connection string Neon |
+| `BETTER_AUTH_SECRET` | secret better-auth |
+| `BETTER_AUTH_URL` | `https://verger.sabel.workers.dev` |
 
-| Service | URL | Rôle |
-|---------|-----|------|
-| Cloudflare | dash.cloudflare.com | Workers + Pages + Durable Objects |
-| Neon | console.neon.tech | PostgreSQL serverless |
-| Upstash | console.upstash.com | Redis (queue async, cache) |
+## Secrets GitHub (Settings → Secrets and variables → Actions)
 
-### 1.2 CLI à installer
+| Secret | Rôle |
+|---|---|
+| `CLOUDFLARE_ACCOUNT_ID` | deploy wrangler |
+| `CLOUDFLARE_API_TOKEN` | token avec permission Workers Scripts:Edit |
+| `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD` | compte PROPRIETAIRE de sonde e2e |
+
+## Pipeline CI/CD (.github/workflows/deploy.yml)
+
+Déclenché sur push `master` (paths: apps/web, packages/shared, e2e, fichiers racine).
+
+1. **Job deploy** : install → tests unitaires (`pnpm test`, exclut @verger/e2e) →
+   build OpenNext → typecheck → `wrangler deploy` → smoke test HTTP.
+2. **Job e2e** (needs: deploy) : installe Chromium headless, lance Playwright
+   contre la prod (auth setup + scénarios anon/owner/multi-rôles), upload le
+   rapport si échec.
+
+## Commandes locales
 
 ```bash
-# Cloudflare Wrangler
-npm install -g wrangler
-wrangler login
-
-# pnpm (si pas déjà fait)
-npm install -g pnpm
+pnpm build:web          # build Next.js (apps/web)
+pnpm deploy:web         # build:cf + wrangler deploy (depuis apps/web)
+pnpm test               # tous les tests unitaires (exclut e2e)
+cd e2e && npx playwright test   # e2e contre la prod (env E2E_EMAIL/E2E_PASSWORD)
 ```
 
----
-
-## 2. Configuration de la base de données (Neon)
-
-### 2.1 Créer un projet production
-
-1. Aller sur [console.neon.tech](https://console.neon.tech)
-2. Créer un nouveau projet : `le-verger-prod`
-3. Récupérer la **connection string** (avec `?sslmode=require`)
-
-### 2.2 Exécuter les migrations
-
-```bash
-# Depuis la racine du monorepo
-cd packages/shared
-# Configurer DATABASE_URL avec la connection string Neon dans .env.local
-# Puis lancer les migrations Drizzle
-npx drizzle-kit push
-```
-
----
-
-## 3. Configuration Upstash Redis
-
-1. Aller sur [console.upstash.com](https://console.upstash.com)
-2. Créer une base Redis `le-verger-prod`
-3. Récupérer :
-   - **UPSTASH_REDIS_REST_URL** : `https://<id>.upstash.io`
-   - **UPSTASH_REDIS_REST_TOKEN** : token d'accès
-
----
-
-## 4. Configuration de l'API (Cloudflare Workers)
-
-### 4.1 Déployer l'API
-
-```bash
-# Depuis la racine du monorepo
-cd apps/api
-wrangler deploy --config wrangler.prod.jsonc
-```
-
-L'URL de l'API sera : `https://verger-api.<TON_COMPTE>.workers.dev`
-
-### 4.2 Variables d'environnement (Cloudflare Dashboard)
-
-Aller dans **Workers & Pages > verger-api > Settings > Variables** et ajouter :
-
-| Variable | Description | Exemple |
-|----------|-------------|---------|
-| `DATABASE_URL` | Connection string Neon PostgreSQL | `postgresql://...?sslmode=require` |
-| `BETTER_AUTH_SECRET` | Secret de session (min 32 chars) | Générer avec `openssl rand -hex 32` |
-| `BETTER_AUTH_URL` | URL de l'API en prod | `https://verger-api.<TON_COMPTE>.workers.dev` |
-| `BETTER_AUTH_API_KEY` | Clé API Better Auth (dash plugin) | `ba_...` |
-| `APP_ENV` | Environnement | `production` |
-| `UPSTASH_REDIS_REST_URL` | URL Upstash Redis (optionnel) | `https://<id>.upstash.io` |
-| `UPSTASH_REDIS_REST_TOKEN` | Token Upstash Redis (optionnel) | `<token>` |
-
-### 4.3 Durable Objects
-
-Le Durable Object `NotificationHub` est configuré dans `wrangler.prod.jsonc`. Il sera automatiquement déployé avec le Worker.
-
----
-
-## 5. Configuration du Frontend (Cloudflare Pages)
-
-### 5.1 Mettre à jour l'URL de l'API
-
-Dans `apps/web/package.json`, le script `build:prod` utilise `NODE_ENV=production`. Le `next.config.ts` lira `API_URL` pour les rewrites.
-
-### 5.2 Déployer le frontend
-
-```bash
-# Depuis la racine du monorepo
-cd apps/web
-API_URL=https://verger-api.<TON_COMPTE>.workers.dev pnpm run build:prod
-wrangler pages deploy .next --project-name=le-verger-web --branch=main
-```
-
-L'URL du frontend sera : `https://le-verger-web.pages.dev`
-
-### 5.3 Variables d'environnement (Cloudflare Pages Dashboard)
-
-Aller dans **Workers & Pages > le-verger-web > Settings > Environment variables** et ajouter :
-
-| Variable | Description | Exemple |
-|----------|-------------|---------|
-| `API_URL` | URL de l'API Workers en prod | `https://verger-api.<TON_COMPTE>.workers.dev` |
-| `BETTER_AUTH_SECRET` | Doit matcher celui de l'API | `<même_secret>` |
-| `NEXT_PUBLIC_APP_URL` | URL du frontend en prod | `https://le-verger-web.pages.dev` |
-
----
-
-## 6. Déploiement automatisé (script)
-
-### Windows (PowerShell)
-
-```powershell
-.\scripts\deploy.ps1
-```
-
-### Linux/macOS (bash)
-
-```bash
-chmod +x scripts/deploy.sh
-./scripts/deploy.sh
-```
-
-**Important :** Éditer les scripts pour remplacer `<TON_COMPTE>` par ton compte Cloudflare réel.
-
----
-
-## 7. URLs de production (à remplir après déploiement)
-
-| Service | URL | Statut |
-|---------|-----|--------|
-| Frontend | `https://le-verger-web.pages.dev` | ⬜ À déployer |
-| API | `https://verger-api.<TON_COMPTE>.workers.dev` | ⬜ À déployer |
-| Neon DB | `console.neon.tech` | ⬜ À configurer |
-| Upstash Redis | `console.upstash.com` | ⬜ À configurer |
-| Dashboard Sentinel | `dash.better-auth.com` | ⬜ À connecter |
-
----
-
-## 8. Vérification post-déploiement
-
-### 8.1 Tester l'API
-
-```bash
-# Health check
-curl https://verger-api.<TON_COMPTE>.workers.dev/health
-
-# Info
-curl https://verger-api.<TON_COMPTE>.workers.dev/
-```
-
-### 8.2 Tester le frontend
-
-1. Ouvrir `https://le-verger-web.pages.dev`
-2. Vérifier que la page charge correctement
-3. Tester le login avec le compte propriétaire
-4. Vérifier que les rewrites `/api/*` fonctionnent (Network tab → vérifier que les appels API répondent)
-
-### 8.3 Tester les WebSockets (Durable Objects)
-
-1. Ouvrir la console navigateur (F12)
-2. Vérifier qu'il n'y a pas d'erreur de connexion WebSocket
-3. Déclencher un événement (ex: créer une absence) → vérifier la notification temps réel
-
----
-
-## 9. Déploiement continu (GitHub Actions — optionnel)
-
-Pour automatiser les déploiements à chaque push sur `main` :
-
-### `.github/workflows/deploy.yml`
-
-```yaml
-name: Deploy
-on:
-  push:
-    branches: [main]
-
-jobs:
-  deploy-api:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm -r typecheck
-      - uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: apps/api
-          command: deploy --config wrangler.prod.jsonc
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
-  deploy-web:
-    runs-on: ubuntu-latest
-    needs: deploy-api
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm -r typecheck
-      - run: pnpm --filter web build
-        env:
-          API_URL: ${{ vars.API_URL }}
-      - uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: apps/web
-          command: pages deploy .next --project-name=le-verger-web --branch=main
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-```
-
-### Secrets GitHub à configurer
-
-| Secret | Description |
-|--------|-------------|
-| `CLOUDFLARE_API_TOKEN` | Token API Cloudflare (scope: Workers, Pages, Durable Objects) |
-| `CLOUDFLARE_ACCOUNT_ID` | ID du compte Cloudflare |
-
-### Variables GitHub à configurer
-
-| Variable | Description |
-|----------|-------------|
-| `API_URL` | URL de l'API Workers en prod |
-
----
-
-## 10. Custom domain (optionnel)
-
-### Frontend (Pages)
-
-1. Aller dans **Workers & Pages > le-verger-web > Custom domains**
-2. Ajouter `app.leverger.sn` (ou ton domaine)
-3. Cloudflare configure automatiquement le DNS
-
-### API (Workers)
-
-1. Aller dans **Workers > verger-api > Triggers**
-2. Ajouter une route : `api.leverger.sn/*`
-3. Configurer le DNS dans Cloudflare
-
----
-
-## 11. Monitoring
-
-### Cloudflare Observability
-
-- Logs : **Workers > verger-api > Logs**
-- Metrics : **Workers > verger-api > Metrics**
-
-### Neon Dashboard
-
-- **console.neon.tech** → métriques de requêtes, stockage, connections
-
-### Upstash Dashboard
-
-- **console.upstash.com** → métriques Redis (commandes/sec, mémoire, connections)
-
----
-
-## 12. Rollback
-
-### API (Workers)
-
-```bash
-wrangler deploy --config wrangler.prod.jsonc --message "rollback"
-# ou via Dashboard : Workers > verger-api > Versions & History → Revert
-```
-
-### Frontend (Pages)
-
-```bash
-# Via Dashboard : Pages > le-verger-web > Deployments → Revert to previous
-```
+Scripts de build apps/web : `clean-sharp` (purge sharp/@img inbundlables sous workerd)
+→ build OpenNext → `patch-opennext` (court-circuite `getMiddlewareManifest()`,
+issue opennextjs-cloudflare #1232/#1258).
+
+## Pièges connus
+
+- Le renommage d'un Worker = nouveau Worker sans secrets → re-poser les 3 secrets
+  + le binding WORKER_SELF_REFERENCE.
+- Plan gratuit Workers = **10 ms CPU/requête** (Error 1102 au-delà). Surveiller
+  `cpuTimeMs` via Workers Logs ; pagination obligatoire sur les grosses listes ;
+  Workers Paid (5 $/mois, 30 s CPU) si dépassements fréquents.
+- `getAuth(env)` est mémoïsé dans lib/auth.ts — ne pas recréer createAuth par requête.

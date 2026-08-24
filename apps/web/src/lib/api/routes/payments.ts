@@ -9,7 +9,7 @@
  */
 
 import { Hono } from "hono";
-import { eq, desc, and, notInArray, sql, inArray } from "drizzle-orm";
+import { eq, desc, and, notInArray, sql, inArray, count } from "drizzle-orm";
 import { createDb } from "../lib/db";
 import {
   payments,
@@ -80,9 +80,24 @@ paymentsRoutes.get("/payments", async (c) => {
     }
   }
 
+  // Pagination : la désérialisation neon-http coûte du CPU proportionnel au
+  // nombre de lignes (plan gratuit = 10 ms/requête). On borne la page et le
+  // total vient d'un count SQL léger, pas du payload complet.
+  const offsetRaw = Number(url.searchParams.get("offset"));
+  const limitRaw = Number(url.searchParams.get("limit"));
+  const offset = Number.isFinite(offsetRaw) && offsetRaw > 0 ? Math.floor(offsetRaw) : 0;
+  let limit = Number.isFinite(limitRaw) && limitRaw > 0 ? Math.floor(limitRaw) : 500;
+  if (limit > 500) limit = 500;
+
+  const where = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
+  const [countRow] = await db.select({ n: count() }).from(payments).where(where);
+
   const result = await db.query.payments.findMany({
-    where: whereConditions.length > 0 ? and(...whereConditions) : undefined,
+    where,
     orderBy: [desc(payments.createdAt)],
+    limit,
+    offset,
     with: {
       student: {
         with: {
@@ -97,7 +112,7 @@ paymentsRoutes.get("/payments", async (c) => {
     },
   });
 
-  return c.json({ data: result, total: result.length });
+  return c.json({ data: result, total: Number(countRow?.n ?? 0), limit, offset });
 });
 
 /* ------------------------------------------------------------------ */

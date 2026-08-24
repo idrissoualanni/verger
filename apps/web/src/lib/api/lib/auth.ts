@@ -71,3 +71,28 @@ export function createAuth(env: AuthEnv) {
 }
 
 export type Auth = ReturnType<typeof createAuth>;
+
+/**
+ * Instance Better Auth mémoïsée.
+ *
+ * better-auth est sans état : reconstruire l'instance (adaptateur drizzle,
+ * plugins, hooks) À CHAQUE requête gaspillait plusieurs ms de CPU. Sur le
+ * plan gratuit Workers (plafond 10 ms/requête), ça déclenchait des
+ * "exceededCpu" → 503 / Error 1102 dès que le trafic ou les données grossissent.
+ * On ne reconstruit que si une valeur d'env change.
+ */
+let cachedAuth: { key: string; instance: Auth } | null = null;
+
+export function getAuth(env: AuthEnv): Auth {
+  const key = [
+    env.DATABASE_URL,
+    env.BETTER_AUTH_SECRET,
+    env.BETTER_AUTH_URL,
+    env.BETTER_AUTH_API_KEY ?? "",
+    env.ORIGINS ?? "",
+  ].join("|");
+  if (!cachedAuth || cachedAuth.key !== key) {
+    cachedAuth = { key, instance: createAuth(env) };
+  }
+  return cachedAuth.instance;
+}

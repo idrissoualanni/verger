@@ -88,6 +88,7 @@ jobs:
         env:
           E2E_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
           E2E_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
+          E2E_PROBE_PASSWORD: ${{ secrets.E2E_PROBE_PASSWORD }}
 
       - name: Upload E2E report on failure
         if: failure()

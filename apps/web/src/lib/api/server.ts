@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { createAuth, type Auth } from "./lib/auth";
+import { getAuth, type Auth } from "./lib/auth";
 import { levelsRoutes } from "./routes/levels";
 import { studentsRoutes } from "./routes/students";
 import { gradesRoutes } from "./routes/grades";
@@ -37,6 +37,12 @@ app.use("*", async (c, next) => {
   if (method === "POST" || method === "DELETE") {
     const ip = c.req.header("cf-connecting-ip") ?? c.req.header("x-forwarded-for") ?? "unknown";
     const now = Date.now();
+    // Purge des entrées expirées — sinon la map fuit en mémoire (isolate longévif).
+    if (rateLimitMap.size > 1000) {
+      for (const [ip, entry] of rateLimitMap) {
+        if (now >= entry.resetAt) rateLimitMap.delete(ip);
+      }
+    }
     const entry = rateLimitMap.get(ip);
     if (entry && now < entry.resetAt) {
       entry.count += 1;
@@ -68,14 +74,14 @@ app.use("/api/*", async (c, next) => {
 });
 
 app.use("*", async (c, next) => {
-  const auth = createAuth({
+  // Instance mémoïsée — reconstruction uniquement si l'env change (CPU).
+  c.set("auth", getAuth({
     DATABASE_URL: c.env.DATABASE_URL,
     BETTER_AUTH_SECRET: c.env.BETTER_AUTH_SECRET,
     BETTER_AUTH_URL: c.env.BETTER_AUTH_URL,
     BETTER_AUTH_API_KEY: c.env.BETTER_AUTH_API_KEY,
     ORIGINS: c.env.ORIGINS,
-  });
-  c.set("auth", auth);
+  }));
   await next();
 });
 

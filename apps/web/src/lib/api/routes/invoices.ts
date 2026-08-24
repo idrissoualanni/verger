@@ -93,9 +93,25 @@ invoicesRoutes.post("/invoices", async (c) => {
 
   const db = createDb(c.env);
   const number = await generateInvoiceNumber(db);
-  const totalAmount = body.items.reduce(
+  // Normalisation unique : les fallbacks (description/designation, unitAmount/amount,
+  // quantité par défaut) sont partagés par le calcul du total ET l'insertion des
+  // lignes — sinon une facture avec items {amount} se stockait totalAmount "NaN".
+  const normalizedItems = body.items.map(
+    (item: {
+      description?: string;
+      designation?: string;
+      unitAmount?: string;
+      amount?: string;
+      quantity?: number;
+    }) => ({
+      designation: item.description || item.designation || "",
+      unitAmount: String(item.unitAmount || item.amount || "0"),
+      quantity: item.quantity ?? 1,
+    })
+  );
+  const totalAmount = normalizedItems.reduce(
     (sum: number, item: { unitAmount: string; quantity: number }) =>
-      sum + parseFloat(item.unitAmount) * (item.quantity ?? 1),
+      sum + parseFloat(item.unitAmount) * item.quantity,
     0
   );
 
@@ -113,21 +129,18 @@ invoicesRoutes.post("/invoices", async (c) => {
     .returning();
 
   const items = await Promise.all(
-    body.items.map((item: { description?: string; designation?: string; unitAmount: string; quantity?: number; amount?: string }) => {
-      const designation = item.description || item.designation || "";
-      const quantity = item.quantity ?? 1;
-      const unitAmount = item.unitAmount || item.amount || "0";
-      return db
+    normalizedItems.map((item: { designation: string; unitAmount: string; quantity: number }) =>
+      db
         .insert(invoiceItems)
         .values({
           id: crypto.randomUUID(),
           invoiceId: invoice[0].id,
-          designation,
-          unitAmount: String(unitAmount),
-          quantity,
+          designation: item.designation,
+          unitAmount: item.unitAmount,
+          quantity: item.quantity,
         })
-        .returning();
-    })
+        .returning()
+    )
   );
 
   const created = await db.query.invoices.findFirst({
@@ -146,30 +159,8 @@ invoicesRoutes.post("/invoices", async (c) => {
   return c.json(created, 201);
 });
 
-// ------------------------------------------------------------------
-// GET /api/invoices/:id → détail
-// ------------------------------------------------------------------
-invoicesRoutes.get("/invoices/:id", async (c) => {
-  const auth = await requirePerm(c, "invoices:read");
-  if ("res" in auth) return auth.res;
-
-  const db = createDb(c.env);
-  const invoice = await db.query.invoices.findFirst({
-    where: eq(invoices.id, c.req.param("id")),
-    with: {
-      student: {
-        with: {
-          class: true,
-          parent: true,
-        },
-      },
-      items: true,
-    },
-  });
-
-  if (!invoice) return c.json({ error: "Facture introuvable" }, 404);
-  return c.json(invoice);
-});
+// NB : GET /invoices/:id est déclaré APRÈS /invoices/stats (fin de fichier) —
+// sinon Hono matche ":id" = "stats" en premier et les stats renvoient 404.
 
 // ------------------------------------------------------------------
 // PATCH /api/invoices/:id → modifier statut, marquer payée
@@ -260,8 +251,6 @@ invoicesRoutes.post("/invoices/:id/send", async (c) => {
 
   const success = Math.random() < 0.9;
 
-  await db.insert(invoices as any).values({}).catch(() => {});
-
   return c.json({
     ok: true,
     sent: success,
@@ -292,7 +281,7 @@ invoicesRoutes.get("/invoices/stats", async (c) => {
     .where(eq(invoices.status, "PAYEE"));
 
   const [pendingResult] = await db
-    .select({ total: sql<number>`coalesce(sum(${invoices.totalAmount} - ${invoices.paidAmount}, 0)` })
+    .select({ total: sql<number>`coalesce(sum(${invoices.totalAmount} - ${invoices.paidAmount}), 0)` })
     .from(invoices)
     .where(eq(invoices.status, "EN_ATTENTE"));
 
@@ -331,4 +320,29 @@ invoicesRoutes.get("/invoices/stats", async (c) => {
     nbAnnule: Number(annulledResult?.count ?? 0),
     monthly,
   });
+});
+
+// ------------------------------------------------------------------
+// GET /api/invoices/:id → détail (APRÈS stats — voir note en haut de fichier)
+// ------------------------------------------------------------------
+invoicesRoutes.get("/invoices/:id", async (c) => {
+  const auth = await requirePerm(c, "invoices:read");
+  if ("res" in auth) return auth.res;
+
+  const db = createDb(c.env);
+  const invoice = await db.query.invoices.findFirst({
+    where: eq(invoices.id, c.req.param("id")),
+    with: {
+      student: {
+        with: {
+          class: true,
+          parent: true,
+        },
+      },
+      items: true,
+    },
+  });
+
+  if (!invoice) return c.json({ error: "Facture introuvable" }, 404);
+  return c.json(invoice);
 });

@@ -3,9 +3,39 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * E2E Le Verger — cible par défaut : la prod (worker `verger`).
  * Surchargable : E2E_BASE_URL=https://localhost:8788 pnpm test:e2e
- * Identifiants : E2E_EMAIL / E2E_PASSWORD (compte PROPRIETAIRE de test).
+ * Identifiants :
+ *  - PROPRIETAIRE : E2E_EMAIL / E2E_PASSWORD
+ *  - autres rôles (probe.*) : E2E_PROBE_PASSWORD
  */
 const baseURL = process.env.E2E_BASE_URL ?? "https://verger.sabel.workers.dev";
+
+/** Projects connectés par rôle, tous dépendants du setup d'authentification. */
+const roleProjects = (testMatch: RegExp) => [
+  {
+    name: "secretariat",
+    testMatch,
+    use: { ...devices["Desktop Chrome"], storageState: ".auth/secretariat.json" },
+    dependencies: ["setup"],
+  },
+  {
+    name: "comptable",
+    testMatch,
+    use: { ...devices["Desktop Chrome"], storageState: ".auth/comptable.json" },
+    dependencies: ["setup"],
+  },
+  {
+    name: "agent",
+    testMatch,
+    use: { ...devices["Desktop Chrome"], storageState: ".auth/agent.json" },
+    dependencies: ["setup"],
+  },
+  {
+    name: "enseignant",
+    testMatch,
+    use: { ...devices["Desktop Chrome"], storageState: ".auth/enseignant.json" },
+    dependencies: ["setup"],
+  },
+];
 
 export default defineConfig({
   testDir: ".",
@@ -20,7 +50,7 @@ export default defineConfig({
     actionTimeout: 10_000,
   },
   projects: [
-    // 1) Authentifie le compte owner une seule fois → storageState partagé
+    // 1) Authentifie les 5 comptes de test → un storageState par rôle
     {
       name: "setup",
       testMatch: /auth\.setup\.ts/,
@@ -39,5 +69,7 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], storageState: ".auth/owner.json" },
       dependencies: ["setup"],
     },
+    // 4) Scénarios RBAC des autres rôles (un projet = un storageState)
+    ...roleProjects(/tests\/rbac-roles\.spec\.ts/),
   ],
 });

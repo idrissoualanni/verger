@@ -158,7 +158,13 @@ staffRoutes.get("/staff/stats", async (c) => {
     .where(eq(staff.isActive, true));
 
   return c.json({
-    byRole,
+    // Normalisation numérique (cohérent avec /expenses/stats) : sum/count
+    // arrivent en strings depuis Postgres.
+    byRole: byRole.map((r) => ({
+      role: r.role,
+      count: Number(r.count),
+      totalSalary: Number(r.totalSalary),
+    })),
     totalSalary: Number(totalResult?.total ?? 0),
     totalActive: Number(countResult?.total ?? 0),
   });

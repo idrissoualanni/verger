@@ -217,10 +217,18 @@ gradesRoutes.patch("/grades/:id", async (c) => {
   if (!body) return c.json({ error: "Corps invalide" }, 400);
 
   const db = createDb(c.env);
+  // Garde-fou : une note non numérique ("abc", vide…) ne doit jamais
+  // s'écrire "NaN" en base — on refuse avec 400 (aligné sur POST /grades).
+  const valueParsed =
+    body.value !== undefined ? parseFloat(String(body.value)) : null;
+  if (valueParsed !== null && (!Number.isFinite(valueParsed) || valueParsed < 0 || valueParsed > 20)) {
+    return c.json({ error: "La note doit être un nombre entre 0 et 20" }, 400);
+  }
+
   const updated = await db
     .update(grades)
     .set({
-      ...(body.value !== undefined ? { value: String(parseFloat(String(body.value)).toFixed(2)) } : {}),
+      ...(body.value !== undefined ? { value: valueParsed.toFixed(2) } : {}),
       ...(body.appreciation !== undefined ? { appreciation: body.appreciation ? String(body.appreciation) : null } : {}),
       ...(body.subjectId ? { subjectId: String(body.subjectId) } : {}),
       ...(body.trimester !== undefined ? { trimester: Number(body.trimester) } : {}),
@@ -507,7 +515,10 @@ gradesRoutes.get("/grades/bulletin", async (c) => {
   }
 
   allStudentAverages.sort((a, b) => b.average - a.average);
-  const rank = allStudentAverages.findIndex((a) => a.studentId === studentId) + 1;
+  // findIndex peut renvoyer -1 (élève retiré de la liste de classe entre les
+  // deux requêtes, isActive=false…) → rank 0 absurde. On renvoie null.
+  const foundIndex = allStudentAverages.findIndex((a) => a.studentId === studentId);
+  const rank = foundIndex >= 0 ? foundIndex + 1 : null;
   const totalStudents = allStudentAverages.length;
 
   return c.json({

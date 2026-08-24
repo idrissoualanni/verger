@@ -110,16 +110,19 @@ Macro-phases **réordonnées : pédagogie avant finances** (décision utilisateu
 - **Notifications** : à chaque fin de tâche, lancer `& "$env:USERPROFILE\notify.ps1"` (done ou help)
 - **Mémoire** : mettre à jour `MEMORY.md` après chaque modification (tâche → erreurs → fix)
 
-## 8. URLs de production (E22)
+## 8. URLs de production (E22 — à jour 24/08/2026)
 
 | Service | URL | Statut |
 |---------|-----|--------|
-| Frontend (Cloudflare Pages) | `https://le-verger-web.pages.dev` | ⬜ À déployer |
-| API (Cloudflare Workers) | `https://verger-api.<TON_COMPTE>.workers.dev` | ⬜ À déployer |
-| Neon DB (prod) | `console.neon.tech` | ⬜ À configurer |
-| Upstash Redis (prod) | `console.upstash.com` | ⬜ À configurer |
+| Worker unique (front + API + DO) | `https://verger.sabel.workers.dev` | ✅ En prod (CI/CD GitHub Actions, pipeline vert) |
+| Neon DB (prod) | projet `round-paper-78033335` (eu-central-1, base `verger`) | ✅ Migrations appliquées |
+| Upstash Redis | — | ❌ Non utilisé (rate limit in-memory) |
 
-**Note :** Remplacer `<TON_COMPTE>` par le nom du compte Cloudflare réel après le premier déploiement.
+**Archéologie :** les workers `verger-api` et `verger-frontend` et le projet
+Cloudflare Pages ont été supprimés (août 2026). Un seul worker `verger` sert le
+front OpenNext + l'API Hono + le DO NotificationHub. Voir `DEPLOY.md`.
+Les tests (unitaires Vitest + e2e Playwright multi-rôles en CI) sont la garantie
+de non-régression ; chaque push master → tests + deploy + e2e contre la prod.
 
 ## 9. Documents de référence
 
