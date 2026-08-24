@@ -224,11 +224,13 @@ gradesRoutes.patch("/grades/:id", async (c) => {
   if (valueParsed !== null && (!Number.isFinite(valueParsed) || valueParsed < 0 || valueParsed > 20)) {
     return c.json({ error: "La note doit être un nombre entre 0 et 20" }, 400);
   }
+  const valueFormatted =
+    body.value !== undefined && valueParsed !== null ? valueParsed.toFixed(2) : undefined;
 
   const updated = await db
     .update(grades)
     .set({
-      ...(body.value !== undefined ? { value: valueParsed.toFixed(2) } : {}),
+      ...(valueFormatted !== undefined ? { value: valueFormatted } : {}),
       ...(body.appreciation !== undefined ? { appreciation: body.appreciation ? String(body.appreciation) : null } : {}),
       ...(body.subjectId ? { subjectId: String(body.subjectId) } : {}),
       ...(body.trimester !== undefined ? { trimester: Number(body.trimester) } : {}),
