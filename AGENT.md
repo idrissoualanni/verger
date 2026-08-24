@@ -53,7 +53,7 @@ Flux critique : Secrétaire enregistre un paiement (même offline) → stocké I
 | ENSEIGNANT | Notes, absences, bulletins | Classes assignées uniquement | Phase 2 |
 | AGENT | Partenariats voyage, candidatures | Dossiers assignés uniquement | Phase 5 |
 
-**Implémentation effective (21/08/2026) :** la matrice `packages/shared/src/permissions.ts` (`ROLE_PERMISSIONS`, `hasPermission`) est la source de vérité. Câblés par le helper `requirePerm(c, permission)` dans les deux copies API : PROPRIETAIRE (tout), SECRETAIRE (payments read/create/update/delete), COMPTABLE (payments read/delete/stats), AGENT (travel). **ENSEIGNANT : zéro permission** (modules notes/absences non câblés). Erreurs distinctes : 401 « Non connecté » / 403 « Accès refusé pour votre rôle » ; le client redirige vers /login sur 401. La sidebar filtre ses entrées par `hasPermission`. Escalade de privilèges fermée : tout signup est forcé SECRETAIRE (`databaseHooks.user.create.before`) — seul `apps/api/scripts/create-owner.ts` pose PROPRIETAIRE (update direct en base).
+**Implémentation effective (21/08/2026) :** la matrice `packages/shared/src/permissions.ts` (`ROLE_PERMISSIONS`, `hasPermission`) est la source de vérité. Câblés par le helper `requirePerm(c, permission)` dans les deux copies API : PROPRIETAIRE (tout), SECRETAIRE (payments read/create/update/delete), COMPTABLE (payments read/delete/stats), AGENT (travel). **ENSEIGNANT : zéro permission** (modules notes/absences non câblés). Erreurs distinctes : 401 « Non connecté » / 403 « Accès refusé pour votre rôle » ; le client redirige vers /login sur 401. La sidebar filtre ses entrées par `hasPermission`. Escalade de privilèges fermée : tout signup est forcé SECRETAIRE (`databaseHooks.user.create.before`) — seul `apps/web/scripts/create-owner.ts` pose PROPRIETAIRE (update direct en base ; commande `pnpm --filter web create-owner`).
 
 ## 5. Plan de construction — étapes
 
@@ -121,6 +121,9 @@ Macro-phases **réordonnées : pédagogie avant finances** (décision utilisateu
 **Archéologie :** les workers `verger-api` et `verger-frontend` et le projet
 Cloudflare Pages ont été supprimés (août 2026). Un seul worker `verger` sert le
 front OpenNext + l'API Hono + le DO NotificationHub. Voir `DEPLOY.md`.
+Le dossier source `apps/api` (copie parité de l'ancienne API standalone) a été
+supprimé le 24/08/2026 — le script ops `create-owner` vit désormais dans
+`apps/web/scripts/`.
 Les tests (unitaires Vitest + e2e Playwright multi-rôles en CI) sont la garantie
 de non-régression ; chaque push master → tests + deploy + e2e contre la prod.
 

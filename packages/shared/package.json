@@ -2,7 +2,7 @@
   "name": "@verger/shared",
   "version": "0.1.0",
   "private": true,
-  "description": "Le Verger — types et schémas partagés entre apps/web et apps/api",
+  "description": "Le Verger — types et schémas partagés de la plateforme",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
