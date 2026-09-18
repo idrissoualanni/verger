@@ -1,38 +1,40 @@
+```gitignore
 # Dependencies
 node_modules/
-.pnpm-store/
 
-# Builds
-.next/
-out/
+# Build outputs
 dist/
 build/
-.wrangler/
-.vercel/
+.next/
+out/
 
-# Env — JAMAIS commiter les secrets
+# Environment variables
 .env
-.env.*
-!.env.example
-*.dev.vars
-.dev.vars
+.env.local
+*.env
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # Logs
 *.log
 
-# Tests
-coverage/
+# Python cache (if applicable)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-# OS / IDE
+# Coverage reports
+coverage/
+htmlcov/
+.coverage
+
+# Temporary files
+*.tmp
 .DS_Store
 Thumbs.db
-*.local
-.idea/
-.vscode/
-
-# Playwright E2E
-e2e/.auth/
-e2e/test-results/
-e2e/playwright-report/
-e2e/blob-report/
-apps/web/wrangler.jsonc.bak
+```
