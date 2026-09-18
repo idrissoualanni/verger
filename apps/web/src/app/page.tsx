@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, GraduationCap, BookOpen, Users, WifiOff, MessageCircle, TrendingUp, Phone, Mail, MapPin } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, GraduationCap, BookOpen, Users, WifiOff, MessageCircle, TrendingUp, Phone, Mail, MapPin, CheckCircle, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ContactForm } from "@/components/contact-form";
@@ -16,6 +19,7 @@ const cycles = [
     image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&h=400&fit=crop",
     description: "Les fondamentaux : lecture, écriture, calcul. Un suivi rigoureux dès le plus jeune âge.",
     icon: BookOpen,
+    features: ["Éveil pédagogique", "Suivi personnalisé", "Activités ludiques"],
   },
   {
     level: "Collège",
@@ -23,6 +27,7 @@ const cycles = [
     image: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=600&h=400&fit=crop",
     description: "Consolidation des acquis, préparation au BFEM. Accompagnement personnalisé.",
     icon: GraduationCap,
+    features: ["Méthodologie renforcée", "Soutien scolaire", "Orientation progressive"],
   },
   {
     level: "Lycée",
@@ -30,6 +35,7 @@ const cycles = [
     image: "https://images.unsplash.com/photo-1523050854058-8df90110c8f1?w=600&h=400&fit=crop",
     description: "Orientation, excellence académique, préparation au baccalauréat.",
     icon: Users,
+    features: ["Spécialisations", "Prépa bac intensive", "Conseils orientation"],
   },
 ];
 
@@ -38,37 +44,75 @@ const avantages = [
     icon: WifiOff,
     title: "Fonctionne hors-ligne",
     desc: "Coupures internet ? L'app continue de marcher. Les données se synchronisent automatiquement.",
+    color: "bg-blue-500",
   },
   {
     icon: MessageCircle,
     title: "Alertes WhatsApp",
     desc: "Absences, paiements, événements — les parents reçoivent des notifications en temps réel.",
+    color: "bg-green-500",
   },
   {
     icon: TrendingUp,
     title: "Suivi en temps réel",
     desc: "Le propriétaire voit tout : inscriptions, paiements, résultats — d'un coup d'œil.",
+    color: "bg-purple-500",
+  },
+];
+
+const testimonials = [
+  {
+    name: "Fatou Diallo",
+    role: "Directrice d'école",
+    content: "Le Verger a transformé notre gestion quotidienne. Les parents sont mieux informés et nous gagnons un temps précieux.",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
+  },
+  {
+    name: "Mamadou Sow",
+    role: "Enseignant",
+    content: "La saisie des notes et la création des bulletins sont devenues simples et rapides. Un outil indispensable.",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
+  },
+  {
+    name: "Aïssa Ba",
+    role: "Parent d'élève",
+    content: "Je reçois les absences et les notes directement sur WhatsApp. Je suis beaucoup plus impliquée dans la scolarité de mon enfant.",
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
   },
 ];
 
 export default function LandingPage() {
+  const [activeFeature, setActiveFeature] = useState(0);
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-hidden">
       {/* Navbar */}
       <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link href="/" className="flex items-center gap-3">
-            <Image src="/logo.png" alt="Logo Le Verger" width={36} height={36} className="rounded-lg" />
+        <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative">
+              <Image src="/logo.png" alt="Logo Le Verger" width={36} height={36} className="rounded-lg transition-transform group-hover:scale-110" />
+              <div className="absolute -inset-1 bg-primary/20 blur-md rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
             <span className="text-lg font-semibold tracking-tight">Le Verger</span>
           </Link>
           <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+              <Link href="#features">Fonctionnalités</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+              <Link href="#cycles">Cycles</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+              <Link href="#temoignages">Témoignages</Link>
+            </Button>
             <Button asChild variant="ghost" size="sm">
               <Link href="/tarifs">Tarifs</Link>
             </Button>
             <Button asChild variant="ghost" size="sm">
               <Link href="/login">Se connecter</Link>
             </Button>
-            <Button asChild size="sm" className="rounded-xl">
+            <Button asChild size="sm" className="rounded-xl shadow-lg shadow-primary/20">
               <Link href="/register">
                 Créer un compte <ArrowRight className="ml-1 size-3.5" />
               </Link>
@@ -90,65 +134,174 @@ export default function LandingPage() {
             priority
             unoptimized
           />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/20 to-background" />
         </div>
-        <div className="relative mx-auto max-w-6xl px-4 py-28 text-center text-white md:py-40">
-          <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm backdrop-blur">
+        <div className="relative mx-auto max-w-7xl px-4 py-28 text-center text-white md:py-40">
+          <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full bg-primary/20 px-4 py-2 text-sm backdrop-blur border border-primary/30 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <span className="size-2 rounded-full bg-green-400 animate-pulse" />
-            Plateforme de gestion scolaire
+            Plateforme de gestion scolaire #1 au Sénégal
           </div>
-          <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
-            L&apos;école, pilotée en <span className="text-green-400">temps réel</span>
+          <h1 className="mx-auto max-w-4xl text-4xl font-bold tracking-tight md:text-5xl lg:text-7xl animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            L&apos;école, pilotée en <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">temps réel</span>
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg text-white/80 md:text-xl">
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-white/90 md:text-xl animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-200">
             Inscriptions, paiements, absences, communication parents — une seule
             plateforme pensée pour les réalités du Sénégal.
           </p>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Button asChild size="lg" className="rounded-xl bg-green-500 px-8 text-white hover:bg-green-600">
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-16 duration-1000 delay-300">
+            <Button asChild size="lg" className="rounded-xl bg-primary px-8 text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30">
               <Link href="/register">
-                Commencer <ArrowRight className="ml-2 size-5" />
+                Commencer gratuitement <ArrowRight className="ml-2 size-5" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="rounded-xl border-white/30 px-8 text-white hover:bg-white/10 hover:text-white">
-              <Link href="#cycles">Découvrir les cycles</Link>
+            <Button asChild variant="outline" size="lg" className="rounded-xl border-white/30 px-8 text-white hover:bg-white/10 hover:text-white backdrop-blur">
+              <Link href="#demo">
+                <Play className="mr-2 size-4" /> Voir la démo
+              </Link>
             </Button>
+          </div>
+          
+          {/* Stats rapides */}
+          <div className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto animate-in fade-in duration-1000 delay-500">
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-white">50+</div>
+              <div className="text-sm text-white/70">écoles utilisatrices</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-white">10k+</div>
+              <div className="text-sm text-white/70">élèves suivis</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-white">99%</div>
+              <div className="text-sm text-white/70">satisfaction</div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ============================================================ */}
-      {/* CYCLES SCOLAIRES (E5 : présentation Primaire / Collège / Lycée) */}
+      {/* FONCTIONNALITÉS PRINCIPALES                                   */}
       {/* ============================================================ */}
-      <section id="cycles" className="mx-auto max-w-6xl px-4 py-20">
-        <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Nos cycles d&apos;enseignement</h2>
-          <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-            Du CP1 à la Terminale, un suivi complet et structuré pour chaque élève.
+      <section id="features" className="mx-auto max-w-7xl px-4 py-20">
+        <div className="mb-16 text-center">
+          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+            Tout ce dont vous avez besoin
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground text-lg">
+            Une suite complète d'outils pour gérer votre établissement scolaire efficacement.
           </p>
         </div>
 
         <div className="grid gap-8 md:grid-cols-3">
-          {cycles.map((c) => (
-            <Card key={c.level} className="group overflow-hidden rounded-2xl transition-shadow hover:shadow-lg">
-              <div className="relative h-48 overflow-hidden">
-                <Image
-                  src={c.image}
-                  alt={c.level}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  unoptimized
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                <div className="absolute bottom-3 left-4 flex items-center gap-2 text-white">
-                  <c.icon className="size-5" />
-                  <span className="font-semibold">{c.level}</span>
+          {avantages.map((a, index) => (
+            <div
+              key={a.title}
+              className="group relative rounded-2xl border bg-card p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 overflow-hidden"
+              onMouseEnter={() => setActiveFeature(index)}
+            >
+              <div className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity ${a.color}`} />
+              <div className="relative">
+                <div className={`mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl ${a.color} text-white shadow-lg`}>
+                  <a.icon className="size-7" />
                 </div>
+                <h3 className="mb-3 text-xl font-semibold">{a.title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{a.desc}</p>
               </div>
-              <CardContent className="p-5">
-                <div className="mb-2 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                  {c.grades}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* CYCLES SCOLAIRES                                              */}
+      {/* ============================================================ */}
+      <section id="cycles" className="border-t bg-muted/30">
+        <div className="mx-auto max-w-7xl px-4 py-20">
+          <div className="mb-16 text-center">
+            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Nos cycles d&apos;enseignement</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-muted-foreground text-lg">
+              Du CP1 à la Terminale, un suivi complet et structuré pour chaque élève.
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-3">
+            {cycles.map((c, index) => (
+              <Card key={c.level} className="group overflow-hidden rounded-2xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 border-0 shadow-lg">
+                <div className="relative h-56 overflow-hidden">
+                  <Image
+                    src={c.image}
+                    alt={c.level}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    unoptimized
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4 flex items-center gap-3 text-white">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
+                      <c.icon className="size-6" />
+                    </div>
+                    <div>
+                      <span className="block text-lg font-semibold">{c.level}</span>
+                      <span className="text-xs text-white/80">{c.grades}</span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">{c.description}</p>
+                <CardContent className="p-6">
+                  <p className="mb-4 text-sm text-muted-foreground leading-relaxed">{c.description}</p>
+                  <ul className="space-y-2">
+                    {c.features.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="size-4 text-primary shrink-0" />
+                        <span className="text-muted-foreground">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* TÉMOIGNAGES                                                   */}
+      {/* ============================================================ */}
+      <section id="temoignages" className="mx-auto max-w-7xl px-4 py-20">
+        <div className="mb-16 text-center">
+          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+            Ils nous font confiance
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground text-lg">
+            Découvrez comment Le Verger aide les écoles sénégalaises au quotidien.
+          </p>
+        </div>
+
+        <div className="grid gap-8 md:grid-cols-3">
+          {testimonials.map((t, index) => (
+            <Card key={t.name} className="rounded-2xl border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="p-6">
+                <div className="mb-4 flex items-center gap-4">
+                  <Image
+                    src={t.avatar}
+                    alt={t.name}
+                    width={56}
+                    height={56}
+                    className="rounded-full object-cover ring-2 ring-primary/20"
+                    unoptimized
+                  />
+                  <div>
+                    <div className="font-semibold">{t.name}</div>
+                    <div className="text-sm text-muted-foreground">{t.role}</div>
+                  </div>
+                </div>
+                <p className="text-muted-foreground italic leading-relaxed">"{t.content}"</p>
+                <div className="mt-4 flex gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={i} className="size-4 text-yellow-500 fill-current" viewBox="0 0 20 20">
+                      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                    </svg>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -156,65 +309,49 @@ export default function LandingPage() {
       </section>
 
       {/* ============================================================ */}
-      {/* AVANTAGES DIFFÉRENCIANTS (E5)                                 */}
-      {/* ============================================================ */}
-      <section className="border-t bg-muted/30">
-        <div className="mx-auto max-w-6xl px-4 py-20">
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-              Pourquoi Le Verger ?
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-              Pensé pour les contraintes réelles des écoles sénégalaises.
-            </p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-3">
-            {avantages.map((a) => (
-              <div
-                key={a.title}
-                className="rounded-2xl border bg-card p-6 text-center transition-shadow hover:shadow-md"
-              >
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <a.icon className="size-6" />
-                </div>
-                <h3 className="mb-2 text-lg font-semibold">{a.title}</h3>
-                <p className="text-sm text-muted-foreground">{a.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* CHIFFRES CLÉS DYNAMIQUES (E5 : masqués si base vide)          */}
+      {/* CHIFFRES CLÉS DYNAMIQUES                                      */}
       {/* ============================================================ */}
       <DynamicStats />
 
       {/* ============================================================ */}
-      {/* CONTACT (E5)                                                  */}
+      {/* CONTACT                                                       */}
       {/* ============================================================ */}
-      <section className="border-t">
-        <div className="mx-auto max-w-6xl px-4 py-20">
+      <section id="contact" className="border-t bg-muted/30">
+        <div className="mx-auto max-w-7xl px-4 py-20">
           <div className="grid gap-12 md:grid-cols-2">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight">Contactez-nous</h2>
-              <p className="mt-3 text-muted-foreground">
+              <h2 className="text-3xl font-bold tracking-tight">Contactez-nous</h2>
+              <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
                 Une question sur nos cycles, nos tarifs ou notre plateforme ?
-                N&apos;hésitez pas à nous écrire.
+                Notre équipe est là pour vous accompagner.
               </p>
-              <div className="mt-6 space-y-4">
-                <div className="flex items-center gap-3 text-sm">
-                  <MapPin className="size-5 text-primary" />
-                  <span>Dakar, Sénégal</span>
+              <div className="mt-8 space-y-5">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <MapPin className="size-5" />
+                  </div>
+                  <div>
+                    <div className="font-medium">Notre adresse</div>
+                    <div className="text-sm text-muted-foreground">Dakar, Sénégal</div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <Phone className="size-5 text-primary" />
-                  <span>+221 XX XXX XX XX</span>
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Phone className="size-5" />
+                  </div>
+                  <div>
+                    <div className="font-medium">Téléphone</div>
+                    <div className="text-sm text-muted-foreground">+221 XX XXX XX XX</div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <Mail className="size-5 text-primary" />
-                  <span>contact@leverger.sn</span>
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Mail className="size-5" />
+                  </div>
+                  <div>
+                    <div className="font-medium">Email</div>
+                    <div className="text-sm text-muted-foreground">contact@leverger.sn</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -225,12 +362,39 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t bg-background">
-        <div className="mx-auto max-w-6xl px-4 py-8 text-center text-sm text-muted-foreground">
-          <div className="mb-2 flex items-center justify-center gap-2">
-            <Image src="/logo.png" alt="" width={20} height={20} className="rounded" />
-            <span className="font-medium text-foreground">Le Verger</span>
+        <div className="mx-auto max-w-7xl px-4 py-12">
+          <div className="grid gap-8 md:grid-cols-4">
+            <div className="md:col-span-2">
+              <div className="mb-4 flex items-center gap-2">
+                <Image src="/logo.png" alt="" width={28} height={28} className="rounded" />
+                <span className="text-lg font-semibold">Le Verger</span>
+              </div>
+              <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
+                Plateforme de gestion scolaire privée conçue pour les écoles sénégalaises.
+                Simplifiez votre administration, améliorez la communication.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Liens rapides</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link href="/login" className="hover:text-primary transition-colors">Connexion</Link></li>
+                <li><Link href="/register" className="hover:text-primary transition-colors">Inscription</Link></li>
+                <li><Link href="/tarifs" className="hover:text-primary transition-colors">Tarifs</Link></li>
+                <li><Link href="#contact" className="hover:text-primary transition-colors">Contact</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Légal</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link href="#" className="hover:text-primary transition-colors">Confidentialité</Link></li>
+                <li><Link href="#" className="hover:text-primary transition-colors">CGU</Link></li>
+                <li><Link href="#" className="hover:text-primary transition-colors">Mentions légales</Link></li>
+              </ul>
+            </div>
           </div>
-          <p>&copy; {new Date().getFullYear()} École Le Verger — Gestion scolaire privée, Dakar.</p>
+          <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
+            <p>&copy; {new Date().getFullYear()} École Le Verger — Dakar, Sénégal. Tous droits réservés.</p>
+          </div>
         </div>
       </footer>
     </div>
@@ -238,7 +402,7 @@ export default function LandingPage() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Chiffres clés dynamiques — masqués si la base est vide (E5)         */
+/* Chiffres clés dynamiques                                            */
 /* ------------------------------------------------------------------ */
 async function DynamicStats() {
   let stats: { levels: number; classes: number } | null = null;
@@ -261,11 +425,11 @@ async function DynamicStats() {
 
   return (
     <section className="border-t bg-primary/5">
-      <div className="mx-auto max-w-6xl px-4 py-14">
-        <h2 className="mb-10 text-center text-2xl font-bold tracking-tight">
+      <div className="mx-auto max-w-7xl px-4 py-16">
+        <h2 className="mb-12 text-center text-2xl font-bold tracking-tight">
           Le Verger en chiffres
         </h2>
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <StatCard label="Niveaux" value={stats.levels} />
           <StatCard label="Classes" value={stats.classes} />
           <StatCard label="Élèves" value="—" hint="bientôt" />
@@ -278,11 +442,11 @@ async function DynamicStats() {
 
 function StatCard({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
-    <div className="text-center">
-      <div className="text-3xl font-bold text-primary">{value}</div>
-      <div className="mt-1 text-sm text-muted-foreground">
+    <div className="text-center p-6 rounded-2xl bg-card border hover:shadow-lg transition-shadow">
+      <div className="text-4xl font-bold text-primary">{value}</div>
+      <div className="mt-2 text-sm text-muted-foreground font-medium">
         {label}
-        {hint && <span className="ml-1 text-xs opacity-60">({hint})</span>}
+        {hint && <span className="ml-2 text-xs opacity-60 bg-muted px-2 py-0.5 rounded-full">{hint}</span>}
       </div>
     </div>
   );
