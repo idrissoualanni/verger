@@ -1,17 +1,12 @@
-```
+```gitignore
 # Dependencies
 node_modules/
 
 # Build outputs
-.next/
 dist/
 build/
+.next/
 out/
-
-# Environment variables
-.env
-.env.local
-*.env.*
 
 # Python
 __pycache__/
@@ -23,29 +18,35 @@ env/
 venv/
 .venv/
 .ENV
-
-# Logs
-*.log
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*.tmp
-
-# Coverage
-coverage/
-htmlcov/
+.env
+.env.local
+.env.*
+.venv/
+.python-version
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
 .coverage
-
-# MyPy
-.mypy_cache/
-
-# PyTest
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/modules/
 .pytest_cache/
+.hypothesis/
+.coverage*
+.pyup.yml
+.isort.cfg
+.pyre/
+.mypy_cache/
+```
+
+Wait, let me reconsider this. The only modified file is `apps/web/src/app/page.tsx` which is a TypeScript React component. Looking at the file changes again, there are no build artifacts, dependency directories, or temporary files mentioned in the changes. The changes only show a modification to a source code file.
+
+Since there are no build artifacts, dependencies, or temp files in the provided changes, and only a source code file was modified, the .gitignore should remain empty.
+
+```gitignore
+
 ```
