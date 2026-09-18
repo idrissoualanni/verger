@@ -85,34 +85,34 @@ export default function LandingPage() {
   const [activeFeature, setActiveFeature] = useState(0);
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
-      {/* Navbar */}
-      <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 overflow-hidden">
+      {/* Navbar améliorée */}
+      <header className="sticky top-0 z-50 border-b bg-background/90 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70 shadow-sm">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative">
-              <Image src="/logo.png" alt="Logo Le Verger" width={36} height={36} className="rounded-lg transition-transform group-hover:scale-110" />
-              <div className="absolute -inset-1 bg-primary/20 blur-md rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Image src="/logo.png" alt="Logo Le Verger" width={40} height={40} className="rounded-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-md" />
+              <div className="absolute -inset-2 bg-primary/20 blur-lg rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
-            <span className="text-lg font-semibold tracking-tight">Le Verger</span>
+            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent">Le Verger</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+          <div className="flex items-center gap-1">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex hover:bg-primary/10 hover:text-primary transition-colors">
               <Link href="#features">Fonctionnalités</Link>
             </Button>
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex hover:bg-primary/10 hover:text-primary transition-colors">
               <Link href="#cycles">Cycles</Link>
             </Button>
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex hover:bg-primary/10 hover:text-primary transition-colors">
               <Link href="#temoignages">Témoignages</Link>
             </Button>
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild variant="ghost" size="sm" className="hover:bg-primary/10 hover:text-primary transition-colors">
               <Link href="/tarifs">Tarifs</Link>
             </Button>
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex border-primary/30 hover:bg-primary/10">
               <Link href="/login">Se connecter</Link>
             </Button>
-            <Button asChild size="sm" className="rounded-xl shadow-lg shadow-primary/20">
+            <Button asChild size="sm" className="rounded-full bg-gradient-to-r from-primary to-emerald-600 hover:from-primary/90 hover:to-emerald-600/90 shadow-lg shadow-primary/30 hover:shadow-primary/40 transition-all duration-300 hover:-translate-y-0.5">
               <Link href="/register">
                 Créer un compte <ArrowRight className="ml-1 size-3.5" />
               </Link>
@@ -136,44 +136,44 @@ export default function LandingPage() {
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/20 to-background" />
         </div>
-        <div className="relative mx-auto max-w-7xl px-4 py-28 text-center text-white md:py-40">
-          <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full bg-primary/20 px-4 py-2 text-sm backdrop-blur border border-primary/30 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <span className="size-2 rounded-full bg-green-400 animate-pulse" />
+        <div className="relative mx-auto max-w-7xl px-4 py-32 text-center text-white md:py-44">
+          <div className="mx-auto mb-8 inline-flex items-center gap-2 rounded-full bg-primary/20 px-5 py-2.5 text-sm backdrop-blur border border-primary/30 animate-in fade-in slide-in-from-bottom-4 duration-700 shadow-lg">
+            <span className="size-2.5 rounded-full bg-green-400 animate-pulse" />
             Plateforme de gestion scolaire #1 au Sénégal
           </div>
-          <h1 className="mx-auto max-w-4xl text-4xl font-bold tracking-tight md:text-5xl lg:text-7xl animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            L&apos;école, pilotée en <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">temps réel</span>
+          <h1 className="mx-auto max-w-4xl text-5xl font-bold tracking-tight md:text-6xl lg:text-7xl animate-in fade-in slide-in-from-bottom-8 duration-1000 drop-shadow-lg">
+            L&apos;école, pilotée en <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-300 to-teal-400">temps réel</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-white/90 md:text-xl animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-200">
+          <p className="mx-auto mt-8 max-w-2xl text-xl text-white/95 md:text-2xl animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-200 drop-shadow-md">
             Inscriptions, paiements, absences, communication parents — une seule
             plateforme pensée pour les réalités du Sénégal.
           </p>
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-16 duration-1000 delay-300">
-            <Button asChild size="lg" className="rounded-xl bg-primary px-8 text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30">
+          <div className="mt-16 flex flex-wrap items-center justify-center gap-5 animate-in fade-in slide-in-from-bottom-16 duration-1000 delay-300">
+            <Button asChild size="lg" className="rounded-full bg-gradient-to-r from-primary to-emerald-600 px-10 text-primary-foreground hover:from-primary/90 hover:to-emerald-600/90 shadow-2xl shadow-primary/40 hover:shadow-primary/50 transition-all duration-300 hover:-translate-y-1 text-lg">
               <Link href="/register">
                 Commencer gratuitement <ArrowRight className="ml-2 size-5" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="rounded-xl border-white/30 px-8 text-white hover:bg-white/10 hover:text-white backdrop-blur">
+            <Button asChild variant="outline" size="lg" className="rounded-full border-2 border-white/40 px-10 text-white hover:bg-white/15 hover:text-white backdrop-blur-md transition-all duration-300 hover:-translate-y-1 text-lg">
               <Link href="#demo">
-                <Play className="mr-2 size-4" /> Voir la démo
+                <Play className="mr-2 size-5" /> Voir la démo
               </Link>
             </Button>
           </div>
           
-          {/* Stats rapides */}
-          <div className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto animate-in fade-in duration-1000 delay-500">
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-white">50+</div>
-              <div className="text-sm text-white/70">écoles utilisatrices</div>
+          {/* Stats rapides améliorées */}
+          <div className="mt-20 grid grid-cols-3 gap-10 max-w-2xl mx-auto animate-in fade-in duration-1000 delay-500">
+            <div className="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-colors">
+              <div className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">50+</div>
+              <div className="text-sm text-white/85 mt-1 font-medium">écoles utilisatrices</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-white">10k+</div>
-              <div className="text-sm text-white/70">élèves suivis</div>
+            <div className="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-colors">
+              <div className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">10k+</div>
+              <div className="text-sm text-white/85 mt-1 font-medium">élèves suivis</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-white">99%</div>
-              <div className="text-sm text-white/70">satisfaction</div>
+            <div className="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-colors">
+              <div className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">99%</div>
+              <div className="text-sm text-white/85 mt-1 font-medium">satisfaction</div>
             </div>
           </div>
         </div>
@@ -182,12 +182,15 @@ export default function LandingPage() {
       {/* ============================================================ */}
       {/* FONCTIONNALITÉS PRINCIPALES                                   */}
       {/* ============================================================ */}
-      <section id="features" className="mx-auto max-w-7xl px-4 py-20">
+      <section id="features" className="mx-auto max-w-7xl px-4 py-24">
         <div className="mb-16 text-center">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 mb-6 mx-auto">
+            <TrendingUp className="size-7 text-primary" />
+          </div>
+          <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
             Tout ce dont vous avez besoin
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground text-lg">
+          <p className="mx-auto mt-6 max-w-2xl text-muted-foreground text-lg">
             Une suite complète d'outils pour gérer votre établissement scolaire efficacement.
           </p>
         </div>
@@ -196,12 +199,13 @@ export default function LandingPage() {
           {avantages.map((a, index) => (
             <div
               key={a.title}
-              className="group relative rounded-2xl border bg-card p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 overflow-hidden"
+              className="group relative rounded-3xl border bg-card p-8 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 overflow-hidden hover:border-primary/30"
               onMouseEnter={() => setActiveFeature(index)}
             >
-              <div className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity ${a.color}`} />
+              <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 ${a.color}`} />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/5 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative">
-                <div className={`mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl ${a.color} text-white shadow-lg`}>
+                <div className={`mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl ${a.color} text-white shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6`}>
                   <a.icon className="size-7" />
                 </div>
                 <h3 className="mb-3 text-xl font-semibold">{a.title}</h3>
@@ -215,19 +219,22 @@ export default function LandingPage() {
       {/* ============================================================ */}
       {/* CYCLES SCOLAIRES                                              */}
       {/* ============================================================ */}
-      <section id="cycles" className="border-t bg-muted/30">
-        <div className="mx-auto max-w-7xl px-4 py-20">
+      <section id="cycles" className="border-t bg-gradient-to-b from-muted/30 to-background">
+        <div className="mx-auto max-w-7xl px-4 py-24">
           <div className="mb-16 text-center">
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Nos cycles d&apos;enseignement</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-muted-foreground text-lg">
+            <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 mb-6 mx-auto">
+              <GraduationCap className="size-7 text-primary" />
+            </div>
+            <h2 className="text-4xl font-bold tracking-tight md:text-5xl">Nos cycles d&apos;enseignement</h2>
+            <p className="mx-auto mt-6 max-w-2xl text-muted-foreground text-lg">
               Du CP1 à la Terminale, un suivi complet et structuré pour chaque élève.
             </p>
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
             {cycles.map((c, index) => (
-              <Card key={c.level} className="group overflow-hidden rounded-2xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 border-0 shadow-lg">
-                <div className="relative h-56 overflow-hidden">
+              <Card key={c.level} className="group overflow-hidden rounded-3xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-3 border-0 shadow-xl hover:border-primary/20">
+                <div className="relative h-60 overflow-hidden">
                   <Image
                     src={c.image}
                     alt={c.level}
@@ -235,24 +242,24 @@ export default function LandingPage() {
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
                     unoptimized
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                  <div className="absolute bottom-4 left-4 right-4 flex items-center gap-3 text-white">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
-                      <c.icon className="size-6" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
+                  <div className="absolute bottom-5 left-5 right-5 flex items-center gap-3 text-white">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/25 backdrop-blur-md shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
+                      <c.icon className="size-7" />
                     </div>
                     <div>
-                      <span className="block text-lg font-semibold">{c.level}</span>
-                      <span className="text-xs text-white/80">{c.grades}</span>
+                      <span className="block text-xl font-bold">{c.level}</span>
+                      <span className="text-sm text-white/90 font-medium">{c.grades}</span>
                     </div>
                   </div>
                 </div>
-                <CardContent className="p-6">
-                  <p className="mb-4 text-sm text-muted-foreground leading-relaxed">{c.description}</p>
-                  <ul className="space-y-2">
+                <CardContent className="p-7">
+                  <p className="mb-5 text-sm text-muted-foreground leading-relaxed">{c.description}</p>
+                  <ul className="space-y-3">
                     {c.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2 text-sm">
-                        <CheckCircle className="size-4 text-primary shrink-0" />
-                        <span className="text-muted-foreground">{feature}</span>
+                      <li key={feature} className="flex items-center gap-3 text-sm">
+                        <CheckCircle className="size-5 text-primary shrink-0" />
+                        <span className="text-muted-foreground font-medium">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -266,38 +273,44 @@ export default function LandingPage() {
       {/* ============================================================ */}
       {/* TÉMOIGNAGES                                                   */}
       {/* ============================================================ */}
-      <section id="temoignages" className="mx-auto max-w-7xl px-4 py-20">
+      <section id="temoignages" className="mx-auto max-w-7xl px-4 py-24">
         <div className="mb-16 text-center">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 mb-6 mx-auto">
+            <Users className="size-7 text-primary" />
+          </div>
+          <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
             Ils nous font confiance
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground text-lg">
+          <p className="mx-auto mt-6 max-w-2xl text-muted-foreground text-lg">
             Découvrez comment Le Verger aide les écoles sénégalaises au quotidien.
           </p>
         </div>
 
         <div className="grid gap-8 md:grid-cols-3">
           {testimonials.map((t, index) => (
-            <Card key={t.name} className="rounded-2xl border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardContent className="p-6">
-                <div className="mb-4 flex items-center gap-4">
-                  <Image
-                    src={t.avatar}
-                    alt={t.name}
-                    width={56}
-                    height={56}
-                    className="rounded-full object-cover ring-2 ring-primary/20"
-                    unoptimized
-                  />
+            <Card key={t.name} className="rounded-3xl border-0 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden group">
+              <CardContent className="p-8">
+                <div className="mb-6 flex items-center gap-5">
+                  <div className="relative">
+                    <Image
+                      src={t.avatar}
+                      alt={t.name}
+                      width={64}
+                      height={64}
+                      className="rounded-full object-cover ring-4 ring-primary/20 group-hover:ring-primary/40 transition-all duration-300"
+                      unoptimized
+                    />
+                    <div className="absolute -inset-1 bg-primary/20 blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </div>
                   <div>
-                    <div className="font-semibold">{t.name}</div>
-                    <div className="text-sm text-muted-foreground">{t.role}</div>
+                    <div className="font-bold text-lg">{t.name}</div>
+                    <div className="text-sm text-muted-foreground font-medium">{t.role}</div>
                   </div>
                 </div>
-                <p className="text-muted-foreground italic leading-relaxed">"{t.content}"</p>
-                <div className="mt-4 flex gap-1">
+                <p className="text-muted-foreground italic leading-relaxed text-base">"{t.content}"</p>
+                <div className="mt-6 flex gap-1.5">
                   {[...Array(5)].map((_, i) => (
-                    <svg key={i} className="size-4 text-yellow-500 fill-current" viewBox="0 0 20 20">
+                    <svg key={i} className="size-5 text-yellow-500 fill-current drop-shadow-sm" viewBox="0 0 20 20">
                       <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
                     </svg>
                   ))}
@@ -305,6 +318,96 @@ export default function LandingPage() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* GALERIE PHOTOS                                                */}
+      {/* ============================================================ */}
+      <section className="mx-auto max-w-7xl px-4 py-24">
+        <div className="mb-16 text-center">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 mb-6 mx-auto">
+            <BookOpen className="size-7 text-primary" />
+          </div>
+          <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
+            La vie au quotidien
+          </h2>
+          <p className="mx-auto mt-6 max-w-2xl text-muted-foreground text-lg">
+            Découvrez notre établissement en images : salles de classe, activités, et moments de vie scolaire.
+          </p>
+        </div>
+
+        <div className="grid gap-5 grid-cols-2 md:grid-cols-4">
+          <div className="relative aspect-square overflow-hidden rounded-3xl group md:col-span-2 md:row-span-2 shadow-xl hover:shadow-2xl transition-shadow duration-500">
+            <Image
+              src="https://images.unsplash.com/photo-1580582932707-528aed8aff1e?w=800&h=800&fit=crop"
+              alt="Salle de classe moderne"
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
+              unoptimized
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute bottom-6 left-6 right-6 text-white translate-y-6 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+              <p className="font-bold text-lg">Salles équipées</p>
+              <p className="text-sm text-white/90">Un environnement d'apprentissage optimal</p>
+            </div>
+          </div>
+          
+          <div className="relative aspect-square overflow-hidden rounded-3xl group shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
+            <Image
+              src="https://images.unsplash.com/photo-1577896851231-70ef18881754?w=400&h=400&fit=crop"
+              alt="Bibliothèque scolaire"
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
+              unoptimized
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute bottom-4 left-4 right-4 text-white translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+              <p className="text-sm font-bold">Bibliothèque</p>
+            </div>
+          </div>
+
+          <div className="relative aspect-square overflow-hidden rounded-3xl group shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
+            <Image
+              src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&h=400&fit=crop"
+              alt="Élèves en classe"
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
+              unoptimized
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute bottom-4 left-4 right-4 text-white translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+              <p className="text-sm font-bold">Apprentissage</p>
+            </div>
+          </div>
+
+          <div className="relative aspect-square overflow-hidden rounded-3xl group shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
+            <Image
+              src="https://images.unsplash.com/photo-1544531586-fde5298cdd40?w=400&h=400&fit=crop"
+              alt="Activités sportives"
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
+              unoptimized
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute bottom-4 left-4 right-4 text-white translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+              <p className="text-sm font-bold">Sport</p>
+            </div>
+          </div>
+
+          <div className="relative aspect-square overflow-hidden rounded-3xl group shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
+            <Image
+              src="https://images.unsplash.com/photo-1564951434112-64d74cc2a2d7?w=400&h=400&fit=crop"
+              alt="Activités artistiques"
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
+              unoptimized
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute bottom-4 left-4 right-4 text-white translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+              <p className="text-sm font-bold">Arts & Créativité</p>
+            </div>
+          </div>
         </div>
       </section>
 
