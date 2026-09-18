@@ -1,11 +1,11 @@
-```gitignore
+```
 # Dependencies
 node_modules/
 
 # Build outputs
+.next/
 dist/
 build/
-.next/
 out/
 
 # Environment variables
@@ -22,35 +22,30 @@ __pycache__/
 env/
 venv/
 .venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-.DS_Store
-Thumbs.db
+.ENV
 
 # Logs
 *.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*.tmp
 
-# Testing
+# Coverage
 coverage/
 htmlcov/
-.pytest_cache/
+.coverage
+
+# MyPy
 .mypy_cache/
 
-# OS generated
-.DS_Store
-Thumbs.db
+# PyTest
+.pytest_cache/
 ```

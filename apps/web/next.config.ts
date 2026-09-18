@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 import path from "node:path";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+
+// Initialiser le contexte Cloudflare pour le développement
+initOpenNextCloudflareForDev();
 
 const MONOREPO_ROOT = path.resolve(__dirname, "../..");
 
