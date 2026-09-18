@@ -309,6 +309,93 @@ export default function LandingPage() {
       </section>
 
       {/* ============================================================ */}
+      {/* GALERIE PHOTOS                                                */}
+      {/* ============================================================ */}
+      <section className="mx-auto max-w-7xl px-4 py-20">
+        <div className="mb-16 text-center">
+          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+            La vie au quotidien
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground text-lg">
+            Découvrez notre établissement en images : salles de classe, activités, et moments de vie scolaire.
+          </p>
+        </div>
+
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+          <div className="relative aspect-square overflow-hidden rounded-2xl group md:col-span-2 md:row-span-2">
+            <Image
+              src="https://images.unsplash.com/photo-1580582932707-528aed8aff1e?w=800&h=800&fit=crop"
+              alt="Salle de classe moderne"
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
+              unoptimized
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute bottom-4 left-4 right-4 text-white translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
+              <p className="font-semibold">Salles équipées</p>
+              <p className="text-sm text-white/80">Un environnement d'apprentissage optimal</p>
+            </div>
+          </div>
+          
+          <div className="relative aspect-square overflow-hidden rounded-2xl group">
+            <Image
+              src="https://images.unsplash.com/photo-1577896851231-70ef18881754?w=400&h=400&fit=crop"
+              alt="Bibliothèque scolaire"
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
+              unoptimized
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute bottom-3 left-3 right-3 text-white translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
+              <p className="text-sm font-semibold">Bibliothèque</p>
+            </div>
+          </div>
+
+          <div className="relative aspect-square overflow-hidden rounded-2xl group">
+            <Image
+              src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&h=400&fit=crop"
+              alt="Élèves en classe"
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
+              unoptimized
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute bottom-3 left-3 right-3 text-white translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
+              <p className="text-sm font-semibold">Apprentissage</p>
+            </div>
+          </div>
+
+          <div className="relative aspect-square overflow-hidden rounded-2xl group">
+            <Image
+              src="https://images.unsplash.com/photo-1544531586-fde5298cdd40?w=400&h=400&fit=crop"
+              alt="Activités sportives"
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
+              unoptimized
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute bottom-3 left-3 right-3 text-white translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
+              <p className="text-sm font-semibold">Sport</p>
+            </div>
+          </div>
+
+          <div className="relative aspect-square overflow-hidden rounded-2xl group">
+            <Image
+              src="https://images.unsplash.com/photo-1564951434112-64d74cc2a2d7?w=400&h=400&fit=crop"
+              alt="Activités artistiques"
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
+              unoptimized
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute bottom-3 left-3 right-3 text-white translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
+              <p className="text-sm font-semibold">Arts & Créativité</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
       {/* CHIFFRES CLÉS DYNAMIQUES                                      */}
       {/* ============================================================ */}
       <DynamicStats />
